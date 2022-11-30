@@ -1,4 +1,4 @@
-use geo::{Coord, Line};
+use geo::{Coord, Line, LineString};
 use nannou::prelude::{BLACK, WHITE};
 use utils::{
   geometry::{sample_coords, sample_line, CoordType, LineType},
@@ -30,19 +30,34 @@ impl StaticArtwork for Model {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);
-    let [w_w, _w_h] = self.base_model.texture.size();
+    let [w_w, w_h] = self.base_model.texture.size();
 
-    let start: Coord = (-(w_w as f64) * 0.95f64 / 2f64, 0f64).into();
-    let end: Coord = (w_w as f64 * 0.95f64 / 2f64, 0f64).into();
-    let (start, end) = sample_coords(start, end, CoordType::Slant(0.05));
-    let line = sample_line(Line::new(start, end), LineType::Straight(100));
+    let lines: Vec<LineString> = (0..5)
+      .map(|i| {
+        let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
+        let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
+        let start = sample_coords(
+          start,
+          CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64),
+        );
+        let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
+        let end = sample_coords(end, CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64));
 
-    line.coords().for_each(|coord| {
-      draw
-        .ellipse()
-        .x_y(coord.x as f32, coord.y as f32)
-        .w_h(10f32, 10f32)
-        .color(BLACK);
+        sample_line(
+          Line::new(start, end),
+          LineType::Wooble(5000, 0.001 * w_w as f64, 0.001 * w_h as f64),
+        )
+      })
+      .collect();
+
+    lines.iter().for_each(|line| {
+      line.coords().for_each(|coord| {
+        draw
+          .ellipse()
+          .x_y(coord.x as f32, coord.y as f32)
+          .w_h(3f32, 3f32)
+          .color(BLACK);
+      })
     });
   }
 }
