@@ -1,10 +1,10 @@
 use super::artwork::{StaticArtwork, StaticArtworkOptions};
-use nannou::{prelude::Update, wgpu, window, App, Frame, LoopMode};
+use nannou::{prelude::Update, wgpu, window, App, Draw, Frame, LoopMode};
 
 pub struct StaticBaseModel {
   window_id: window::Id,
-  // The texture that is drawn to
-  texture: wgpu::Texture,
+  pub draw: Draw,
+  pub texture: wgpu::Texture,
   renderer: nannou::draw::Renderer,
   texture_capturer: wgpu::TextureCapturer,
   texture_reshaper: wgpu::TextureReshaper,
@@ -22,6 +22,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
     .build()
     .unwrap();
   let window = app.window(window_id).unwrap();
+  let draw = Draw::new();
 
   // Retrieve the wgpu device.
   let device = window.device();
@@ -61,6 +62,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
   std::fs::create_dir_all(&capture_directory(app)).unwrap();
   StaticBaseModel {
     window_id,
+    draw,
     texture,
     renderer,
     texture_capturer,
@@ -80,7 +82,10 @@ fn model<T: 'static + StaticArtwork>(app: &App) -> T {
 }
 
 fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
-  let draw = app.draw();
+  println!("Computing artwork...");
+  model.draw();
+
+  println!("Drawing to texture...");
   let window = app.window(model.get_model().window_id).unwrap();
   let device = window.device();
   let base_model = model.get_model_mut();
@@ -89,9 +94,12 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
   let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
     label: Some("Texture Renderer"),
   });
-  base_model
-    .renderer
-    .render_to_texture(device, &mut encoder, &draw, &base_model.texture);
+  base_model.renderer.render_to_texture(
+    device,
+    &mut encoder,
+    &base_model.draw,
+    &base_model.texture,
+  );
   let snapshot =
     model
       .get_model()
@@ -99,11 +107,11 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
       .capture(device, &mut encoder, &model.get_model().texture);
   window.queue().submit(Some(encoder.finish()));
 
-  // Save texture snapshot
+  let path = captured_frame_path(app, "frame");
+  println!("Saving texture {} ...", path.to_str().unwrap());
   let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
     label: Some("Save texture Renderer"),
   });
-  let path = captured_frame_path(app, "frame");
   snapshot
     .read(move |result| {
       let image = result.expect("Failed to map texture memory").to_owned();
@@ -116,10 +124,12 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
 }
 
 fn view<T: StaticArtwork>(_app: &App, model: &T, frame: Frame) {
+  println!("Rendering texture to frame...");
   model
     .get_model()
     .texture_reshaper
     .encode_render_pass(frame.texture_view(), &mut frame.command_encoder());
+  println!("All Done! You can exit the app.")
 }
 
 // Wait for capture to finish.
@@ -138,11 +148,9 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
     .project_path()
     .expect("could not locate project_path")
     .join(app.exe_name().unwrap())
+    .join("out")
 }
 
 fn captured_frame_path(app: &App, name: &str) -> std::path::PathBuf {
-  capture_directory(app)
-    .join("output")
-    .join(name)
-    .with_extension("png")
+  capture_directory(app).join(name).with_extension("png")
 }

@@ -2,9 +2,10 @@ use super::{base_model::StaticBaseModel, constants};
 
 pub trait StaticArtwork {
   fn new(model: StaticBaseModel) -> Self;
+  fn get_options() -> StaticArtworkOptions;
   fn get_model(&self) -> &StaticBaseModel;
   fn get_model_mut(&mut self) -> &mut StaticBaseModel;
-  fn get_options() -> StaticArtworkOptions;
+  fn draw(&self);
 }
 
 pub struct StaticArtworkOptions {
@@ -13,8 +14,8 @@ pub struct StaticArtworkOptions {
 }
 
 impl Default for StaticArtworkOptions {
-  fn default() -> StaticArtworkOptions {
-    StaticArtworkOptions {
+  fn default() -> Self {
+    Self {
       texture_size: constants::TEXTURE_SIZE,
       render_size: constants::RENDER_SIZE,
     }

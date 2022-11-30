@@ -17,3 +17,6 @@ Cargo.lock
 
 # OS related
 .DS_Store
+
+# Outputs
+out/
