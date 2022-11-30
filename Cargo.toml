@@ -1,5 +1,5 @@
 [workspace]
-members = ["hantai", "utils"]
+members = ["develop", "utils"]
 resolver = "2"
 
 [profile.dev]
