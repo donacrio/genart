@@ -5,6 +5,7 @@ use super::{sample_coords, CoordType};
 pub enum LineType {
   Straight(usize),
   Wooble(usize, f64, f64),
+  SmoothWooble(usize, f64, f64, usize),
 }
 
 pub fn sample_line(line: Line, line_type: LineType) -> LineString {
@@ -12,6 +13,9 @@ pub fn sample_line(line: Line, line_type: LineType) -> LineString {
     LineType::Straight(n_sample) => sample_straight_line(line, n_sample),
     LineType::Wooble(n_sample, std_dev_x, std_dev_y) => {
       sample_wooble_line(line, n_sample, std_dev_x, std_dev_y)
+    }
+    LineType::SmoothWooble(n_sample, std_dev_x, std_dev_y, window) => {
+      sample_smooth_wooble_line(line, n_sample, std_dev_x, std_dev_y, window)
     }
   }
 }
@@ -25,9 +29,22 @@ fn sample_straight_line(line: Line, n_sample: usize) -> LineString {
 }
 
 fn sample_wooble_line(line: Line, n_sample: usize, std_dev_x: f64, std_dev_y: f64) -> LineString {
+  // TODO: unique std_dev and orthogonal sample to line slope
+  // Line not wooble enough, use less sample and bigger std_dev for slope
+  // the samplke with more points and smaller std_dev
   sample_straight_line(line, n_sample)
     .into_iter()
     .map(|coord| sample_coords(coord, CoordType::Slant(std_dev_x, std_dev_y)))
     .collect::<Vec<Coord>>()
     .into()
+}
+
+fn sample_smooth_wooble_line(
+  line: Line,
+  n_sample: usize,
+  std_dev_x: f64,
+  std_dev_y: f64,
+  window: usize,
+) -> LineString {
+  line.into()
 }

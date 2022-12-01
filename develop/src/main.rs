@@ -45,7 +45,7 @@ impl StaticArtwork for Model {
 
         sample_line(
           Line::new(start, end),
-          LineType::Wooble(5000, 0.001 * w_w as f64, 0.001 * w_h as f64),
+          LineType::Wooble(5000, 0f64, 0.005 * w_h as f64),
         )
       })
       .collect();
