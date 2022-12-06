@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::{base_model::StaticBaseModel, constants};
 
 pub trait StaticArtwork {
@@ -11,6 +13,7 @@ pub trait StaticArtwork {
 pub struct StaticArtworkOptions {
   pub texture_size: [u32; 2],
   pub render_size: [u32; 2],
+  pub background_path: Option<PathBuf>,
 }
 
 impl Default for StaticArtworkOptions {
@@ -18,6 +21,7 @@ impl Default for StaticArtworkOptions {
     Self {
       texture_size: constants::TEXTURE_SIZE,
       render_size: constants::RENDER_SIZE,
+      background_path: None,
     }
   }
 }
