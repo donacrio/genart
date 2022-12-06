@@ -200,7 +200,7 @@ fn record<T: DynamicArtwork>(
 
   let path = captured_frame_path(app, elapsed_frames.to_string());
   println!(
-    "Saving texture {}/{} into {} ...",
+    "Saving frame {}/{} into {} ...",
     elapsed_frames,
     n_frames,
     path.to_str().unwrap()

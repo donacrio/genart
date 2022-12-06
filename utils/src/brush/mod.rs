@@ -1,7 +1,25 @@
 use crate::geometry::{sample_line, LineType};
 use geo::{Line, LineString};
 
-pub fn stroke(line: Line, size: f64) -> LineString {
+pub enum BrushType {
+  Stroke(f64),
+  Pencil(f64),
+  Charcoal(f64),
+  Ink(f64),
+  Sand(f64),
+}
+
+pub fn sample_brush(line: Line, brush_type: BrushType) -> LineString {
+  match brush_type {
+    BrushType::Stroke(size) => stroke(line, size),
+    BrushType::Pencil(size) => pencil(line, size),
+    BrushType::Charcoal(size) => charcoal(line, size),
+    BrushType::Ink(size) => ink(line, size),
+    BrushType::Sand(size) => sand(line, size),
+  }
+}
+
+fn stroke(line: Line, size: f64) -> LineString {
   // TODO: No constant parameters
   let line = sample_line(line.into(), LineType::Straight(20));
   let line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
@@ -9,7 +27,7 @@ pub fn stroke(line: Line, size: f64) -> LineString {
   sample_line(line, LineType::Straight(50))
 }
 
-pub fn pencil(line: Line, size: f64) -> LineString {
+fn pencil(line: Line, size: f64) -> LineString {
   // TODO: No constant parameters
   let line = sample_line(line.into(), LineType::Straight(10));
   let line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
@@ -18,7 +36,7 @@ pub fn pencil(line: Line, size: f64) -> LineString {
   sample_line(line, LineType::Wooble(0f64, 0.0025 * size))
 }
 
-pub fn charcoal(line: Line, size: f64) -> LineString {
+fn charcoal(line: Line, size: f64) -> LineString {
   // point width: 0.5
   let base_line = sample_line(line.into(), LineType::Straight(10));
   let base_line = sample_line(base_line, LineType::Wooble(0f64, 0.004 * size));
@@ -30,7 +48,7 @@ pub fn charcoal(line: Line, size: f64) -> LineString {
     .collect()
 }
 
-pub fn sand(line: Line, size: f64) -> LineString {
+fn sand(line: Line, size: f64) -> LineString {
   let line = sample_line(line.into(), LineType::Straight(10));
   let mut line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
   let mut lines = Vec::new();
@@ -44,7 +62,7 @@ pub fn sand(line: Line, size: f64) -> LineString {
   lines.into_iter().flatten().collect()
 }
 
-pub fn ink(line: Line, size: f64) -> LineString {
+fn ink(line: Line, size: f64) -> LineString {
   let line = sample_line(line.into(), LineType::Straight(10));
   let mut line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
   let mut lines = Vec::new();
