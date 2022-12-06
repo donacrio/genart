@@ -114,20 +114,17 @@ fn update<T: DynamicArtwork>(app: &App, model: &mut T, _update: Update) {
   }
 
   // Drawing artwork
-  println!("Computing artwork...");
   let [w, _] = model.get_model().texture.size();
-  let fps = model.get_model().fps;
-  let n_sec = model.get_model().n_sec;
+  let n_frames = model.get_model().fps * model.get_model().n_sec;
   let elapsed_frames = if model.get_model().recording {
     model.get_model().current_frame
   } else {
     let pos = 2. * (4. * app.mouse.x + (w as f32)) / w as f32;
-    (pos * (fps * n_sec) as f32) as u32 % (fps * n_sec)
+    (pos * n_frames as f32) as u32 % n_frames
   };
-  let t = map_range(elapsed_frames as f64, 0., (fps * n_sec) as f64, 0., 1.);
+  let t = map_range(elapsed_frames as f64, 0., n_frames as f64, 0., 1.);
   model.draw_at_time(t);
 
-  println!("Drawing to texture...");
   let window = app.window(model.get_model().window_id).unwrap();
   let device = window.device();
   let base_model = model.get_model_mut();
@@ -149,29 +146,18 @@ fn update<T: DynamicArtwork>(app: &App, model: &mut T, _update: Update) {
       .capture(device, &mut encoder, &model.get_model().texture);
   window.queue().submit(Some(encoder.finish()));
 
-  let path = captured_frame_path(app, "frame");
-  println!("Saving texture {} ...", path.to_str().unwrap());
-  let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-    label: Some("Save texture Renderer"),
-  });
-  snapshot
-    .read(move |result| {
-      let image = result.expect("Failed to map texture memory").to_owned();
-      image
-        .save(&path)
-        .expect("Failed to save texture to png image");
-    })
-    .unwrap();
-  window.queue().submit(Some(encoder.finish()));
+  if model.get_model().recording {
+    record(app, model, elapsed_frames, snapshot);
+  } else {
+    println!("Rendering frame {}/{}", elapsed_frames, n_frames);
+  }
 }
 
 fn view<T: DynamicArtwork>(_app: &App, model: &T, frame: Frame) {
-  println!("Rendering texture to frame...");
   model
     .get_model()
     .texture_reshaper
     .encode_render_pass(frame.texture_view(), &mut frame.command_encoder());
-  println!("All Done! You can exit the app.")
 }
 
 // Wait for capture to finish.
@@ -203,6 +189,37 @@ fn key_pressed<T: DynamicArtwork>(_app: &App, model: &mut T, key: Key) {
   }
 }
 
+fn record<T: DynamicArtwork>(
+  app: &App,
+  model: &mut T,
+  elapsed_frames: u32,
+  snapshot: wgpu::TextueSnapshot,
+) {
+  let mut base_model = model.get_model_mut();
+  let n_frames = base_model.fps * base_model.n_sec;
+
+  let path = captured_frame_path(app, elapsed_frames.to_string());
+  println!(
+    "Saving texture {}/{} into {} ...",
+    elapsed_frames,
+    n_frames,
+    path.to_str().unwrap()
+  );
+  snapshot
+    .read(move |result| {
+      let image = result.expect("Failed to map texture memory").to_owned();
+      image
+        .save(&path)
+        .expect("Failed to save texture to png image");
+    })
+    .unwrap();
+
+  base_model.current_frame += 1;
+  if base_model.current_frame > n_frames {
+    base_model.recording = false;
+  }
+}
+
 fn capture_directory(app: &App) -> std::path::PathBuf {
   app
     .project_path()
@@ -212,7 +229,7 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
     .join("frames")
 }
 
-fn captured_frame_path(app: &App, name: &str) -> std::path::PathBuf {
+fn captured_frame_path(app: &App, name: String) -> std::path::PathBuf {
   capture_directory(app).join(name).with_extension("png")
 }
 
