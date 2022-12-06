@@ -14,7 +14,7 @@ pub fn pencil(line: Line, size: f64) -> LineString {
   let line = sample_line(line.into(), LineType::Straight(10));
   let line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
   let line = sample_line(line, LineType::Smooth(3));
-  let line = sample_line(line, LineType::Straight(50));
+  let line = sample_line(line, LineType::Straight(500));
   sample_line(line, LineType::Wooble(0f64, 0.0025 * size))
 }
 

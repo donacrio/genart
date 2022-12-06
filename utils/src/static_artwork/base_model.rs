@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::artwork::{StaticArtwork, StaticArtworkOptions};
 use nannou::{prelude::Update, wgpu, window, App, Draw, Frame, LoopMode};
 
@@ -8,6 +10,7 @@ pub struct StaticBaseModel {
   renderer: nannou::draw::Renderer,
   texture_capturer: wgpu::TextureCapturer,
   texture_reshaper: wgpu::TextureReshaper,
+  background_texture: Option<wgpu::Texture>,
 }
 
 fn make_base_model<T: 'static + StaticArtwork>(
@@ -28,6 +31,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
   let device = window.device();
   // Create our custom texture.
   let sample_count = window.msaa_samples();
+
   let texture = wgpu::TextureBuilder::new()
     .size(options.texture_size)
     // Our texture will be used as the RENDER_ATTACHMENT for our `Draw` render pass.
@@ -58,6 +62,9 @@ fn make_base_model<T: 'static + StaticArtwork>(
     texture.format(),
   );
 
+  let background_texture = options.background_path.map(|background_path| {
+    wgpu::Texture::from_path(&window, images_path(app, background_path)).unwrap()
+  });
   // Make sure the directory where we will save images to exists.
   std::fs::create_dir_all(&capture_directory(app)).unwrap();
   StaticBaseModel {
@@ -67,6 +74,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
     renderer,
     texture_capturer,
     texture_reshaper,
+    background_texture,
   }
 }
 
@@ -82,6 +90,16 @@ fn model<T: 'static + StaticArtwork>(app: &App) -> T {
 }
 
 fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
+  if let Some(background_texture) = &model.get_model().background_texture {
+    // Rendering texture as background
+    let sampler = wgpu::SamplerBuilder::new()
+      .address_mode(wgpu::AddressMode::ClampToBorder)
+      .into_descriptor();
+    let draw = &model.get_model().draw;
+    draw.sampler(sampler);
+    draw.texture(&background_texture);
+  }
+
   println!("Computing artwork...");
   model.draw();
 
@@ -147,10 +165,14 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
   app
     .project_path()
     .expect("could not locate project_path")
-    .join(app.exe_name().unwrap())
     .join("out")
+    .join(app.exe_name().unwrap())
 }
 
 fn captured_frame_path(app: &App, name: &str) -> std::path::PathBuf {
   capture_directory(app).join(name).with_extension("png")
+}
+
+fn images_path(app: &App, path: PathBuf) -> PathBuf {
+  app.assets_path().unwrap().join("images").join(path)
 }
