@@ -53,7 +53,7 @@ impl StaticArtwork for Model {
           sample_coords(end, CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64)),
         )
       })
-      .map(|line| utils::brush::sand(line, w_h as f64))
+      .map(|line| utils::brush::sample_brush(line, utils::brush::BrushType::Sand(w_h as f64)))
       .for_each(|line| {
         line.coords().for_each(|coord| {
           draw
