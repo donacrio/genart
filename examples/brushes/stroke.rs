@@ -1,10 +1,7 @@
-use std::path::PathBuf;
-
 use geo::{Coord, Line};
 use nannou::prelude::{BLACK, WHITE};
-use utils::{
-  geometry::{sample_coords, CoordType},
-  static_artwork::{make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel},
+use utils::static_artwork::{
+  make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel,
 };
 
 fn main() {
@@ -20,10 +17,7 @@ impl StaticArtwork for Model {
     Self { base_model }
   }
   fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions {
-      background_path: Some(PathBuf::from("graph-paper.png")),
-      ..StaticArtworkOptions::default()
-    }
+    StaticArtworkOptions::default()
   }
   fn get_model(&self) -> &StaticBaseModel {
     &self.base_model
@@ -42,18 +36,9 @@ impl StaticArtwork for Model {
         let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
         let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
         let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
-        println!("{:?}", Line::new(start, end).delta());
         (start, end)
       })
-      .map(|(start, end)| {
-        Line::new(
-          sample_coords(
-            start,
-            CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64),
-          ),
-          sample_coords(end, CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64)),
-        )
-      })
+      .map(|(start, end)| Line::new(start, end))
       .map(|line| utils::brush::sample_brush(line.into(), utils::brush::BrushType::Stroke))
       .for_each(|line| {
         line.coords().for_each(|coord| {

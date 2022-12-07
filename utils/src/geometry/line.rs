@@ -19,17 +19,16 @@ pub fn sample_line(line_string: LineString, line_type: LineType) -> LineString {
 }
 
 fn sample_straight(line_string: LineString, n_samples: usize) -> LineString {
-  let total_len = line_string
-    .lines()
-    .map(|line| line.euclidean_length())
-    .fold(0f64, |acc, curr| acc + curr);
-
+  let total_len = line_string.euclidean_length();
   line_string
     .lines()
     .flat_map(|line| {
-      let n_samples = n_samples * (line.euclidean_length() / total_len) as usize;
+      let n_samples = match (n_samples as f64 * (line.euclidean_length() / total_len)) as usize {
+        0 => 1,
+        i => i,
+      };
       let sample_coord = line.delta() / (n_samples as f64);
-      (0..=n_samples).map(move |i| line.start + sample_coord * (i as f64))
+      (0..n_samples).map(move |i| line.start + sample_coord * (i as f64))
     })
     .collect()
 }

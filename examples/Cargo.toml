@@ -26,3 +26,6 @@ path = "lines/smooth.rs"
 [[example]]
 name = "brushes_stroke"
 path = "brushes/stroke.rs"
+[[example]]
+name = "brushes_pencil"
+path = "brushes/pencil.rs"
