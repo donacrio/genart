@@ -20,10 +20,7 @@ impl StaticArtwork for Model {
     Self { base_model }
   }
   fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions {
-      background_path: Some(PathBuf::from("graph-paper.png")),
-      ..StaticArtworkOptions::default()
-    }
+    StaticArtworkOptions::default()
   }
   fn get_model(&self) -> &StaticBaseModel {
     &self.base_model
@@ -42,6 +39,7 @@ impl StaticArtwork for Model {
         let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
         let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
         let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
+        println!("{:?}", Line::new(start, end).delta());
         (start, end)
       })
       .map(|(start, end)| {
@@ -53,7 +51,15 @@ impl StaticArtwork for Model {
           sample_coords(end, CoordType::Slant(0.01 * w_w as f64, 0.01 * w_h as f64)),
         )
       })
-      .map(|line| utils::brush::sample_brush(line, utils::brush::BrushType::Stroke(w_h as f64)))
+      .map(|line| {
+        utils::geometry::sample_line(
+          line.into(),
+          utils::geometry::LineType::Wooble(50, 0f64, 0.004 * w_h as f64),
+        )
+      })
+      .map(|line_string| {
+        utils::geometry::sample_line(line_string, utils::geometry::LineType::Smooth(2))
+      })
       .for_each(|line| {
         line.coords().for_each(|coord| {
           draw
