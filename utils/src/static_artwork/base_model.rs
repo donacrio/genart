@@ -1,7 +1,11 @@
 use std::path::PathBuf;
 
 use super::artwork::{StaticArtwork, StaticArtworkOptions};
-use nannou::{prelude::Update, wgpu, window, App, Draw, Frame, LoopMode};
+use nannou::{
+  prelude::{Key, Update},
+  wgpu, window, App, Draw, Frame, LoopMode,
+};
+use rand::random;
 
 pub struct StaticBaseModel {
   window_id: window::Id,
@@ -11,6 +15,7 @@ pub struct StaticBaseModel {
   texture_capturer: wgpu::TextureCapturer,
   texture_reshaper: wgpu::TextureReshaper,
   background_texture: Option<wgpu::Texture>,
+  pub seed: u64,
 }
 
 fn make_base_model<T: 'static + StaticArtwork>(
@@ -22,6 +27,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
     .new_window()
     .size(win_w, win_h)
     .view::<T>(view)
+    .key_pressed::<T>(key_pressed)
     .build()
     .unwrap();
   let window = app.window(window_id).unwrap();
@@ -65,6 +71,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
   let background_texture = options.background_path.map(|background_path| {
     wgpu::Texture::from_path(&window, images_path(app, background_path)).unwrap()
   });
+  let seed = random();
   // Make sure the directory where we will save images to exists.
   std::fs::create_dir_all(&capture_directory(app)).unwrap();
   StaticBaseModel {
@@ -75,6 +82,7 @@ fn make_base_model<T: 'static + StaticArtwork>(
     texture_capturer,
     texture_reshaper,
     background_texture,
+    seed,
   }
 }
 
@@ -82,7 +90,7 @@ pub fn make_static_nannou_app<T: 'static + StaticArtwork>() -> nannou::app::Buil
   nannou::app(model)
     .update(update)
     .exit(exit)
-    .loop_mode(LoopMode::loop_once())
+    .loop_mode(LoopMode::wait())
 }
 
 fn model<T: 'static + StaticArtwork>(app: &App) -> T {
@@ -90,6 +98,7 @@ fn model<T: 'static + StaticArtwork>(app: &App) -> T {
 }
 
 fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
+  println!("\nUsing seed {}", model.get_model().seed);
   if let Some(background_texture) = &model.get_model().background_texture {
     // Rendering texture as background
     let sampler = wgpu::SamplerBuilder::new()
@@ -118,6 +127,7 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
     &base_model.draw,
     &base_model.texture,
   );
+  let seed = base_model.seed;
   let snapshot =
     model
       .get_model()
@@ -125,7 +135,7 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
       .capture(device, &mut encoder, &model.get_model().texture);
   window.queue().submit(Some(encoder.finish()));
 
-  let path = captured_frame_path(app, "frame");
+  let path = captured_frame_path(app, format!("frame_{}", seed).as_str());
   println!("Saving texture {} ...", path.to_str().unwrap());
   let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
     label: Some("Save texture Renderer"),
@@ -142,12 +152,10 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
 }
 
 fn view<T: StaticArtwork>(_app: &App, model: &T, frame: Frame) {
-  println!("Rendering texture to frame...");
   model
     .get_model()
     .texture_reshaper
     .encode_render_pass(frame.texture_view(), &mut frame.command_encoder());
-  println!("All Done! You can exit the app.")
 }
 
 // Wait for capture to finish.
@@ -159,6 +167,15 @@ fn exit<T: StaticArtwork>(app: &App, model: T) {
     .texture_capturer
     .await_active_snapshots(device)
     .unwrap();
+}
+
+fn key_pressed<T: StaticArtwork>(app: &App, model: &mut T, key: Key) {
+  let base_model = model.get_model_mut();
+  if key == Key::S {
+    let seed = random();
+    base_model.seed = seed;
+  }
+  model.key_pressed(app, key);
 }
 
 fn capture_directory(app: &App) -> std::path::PathBuf {

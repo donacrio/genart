@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-
 use super::{base_model::StaticBaseModel, constants};
+use nannou::{prelude::Key, App};
+use std::path::PathBuf;
 
 pub trait StaticArtwork {
   fn new(model: StaticBaseModel) -> Self;
@@ -8,6 +8,7 @@ pub trait StaticArtwork {
   fn get_model(&self) -> &StaticBaseModel;
   fn get_model_mut(&mut self) -> &mut StaticBaseModel;
   fn draw(&self);
+  fn key_pressed(&mut self, app: &App, key: Key);
 }
 
 pub struct StaticArtworkOptions {

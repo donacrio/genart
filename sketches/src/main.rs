@@ -1,5 +1,9 @@
 use geo::{coord, LineString, Rect};
-use nannou::prelude::{BLACK, WHITE};
+use nannou::{
+  prelude::{Key, BLACK, WHITE},
+  App,
+};
+use rand::{rngs::StdRng, SeedableRng};
 use rand_distr::{Bernoulli, Distribution};
 use utils::static_artwork::{
   make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel,
@@ -11,11 +15,15 @@ fn main() {
 
 struct Model {
   base_model: StaticBaseModel,
+  depth: usize,
 }
 
 impl StaticArtwork for Model {
   fn new(base_model: StaticBaseModel) -> Self {
-    Self { base_model }
+    Self {
+      base_model,
+      depth: 1,
+    }
   }
   fn get_options() -> StaticArtworkOptions {
     StaticArtworkOptions::default()
@@ -39,11 +47,12 @@ impl StaticArtwork for Model {
     );
 
     let mut tiles = vec![rect];
-    for _ in 0..3 {
+    for _ in 0..self.depth {
       tiles = tile(tiles);
     }
+    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
     tiles.iter().for_each(|tile| {
-      let axis = Bernoulli::new(0.5).unwrap().sample(&mut rand::thread_rng());
+      let axis = Bernoulli::new(0.5).unwrap().sample(&mut rng);
       let (start, end) = match axis {
         true => (tile.min(), tile.max()),
         false => (
@@ -61,6 +70,14 @@ impl StaticArtwork for Model {
           .color(BLACK);
       });
     });
+  }
+
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.depth += 1,
+      Key::Down => self.depth -= 1,
+      _ => {}
+    }
   }
 }
 
