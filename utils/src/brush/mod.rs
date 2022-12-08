@@ -1,77 +1,81 @@
 use crate::geometry::{sample_line, LineType};
-use geo::{Line, LineString};
+use geo::{EuclideanLength, LineString};
 
 pub enum BrushType {
-  Stroke(f64),
-  Pencil(f64),
+  Stroke,
+  Pencil,
   Charcoal(f64),
   Ink(f64),
   Sand(f64),
 }
 
-pub fn sample_brush(line: Line, brush_type: BrushType) -> LineString {
+pub fn sample_brush(line: LineString, brush_type: BrushType) -> LineString {
   match brush_type {
-    BrushType::Stroke(size) => stroke(line, size),
-    BrushType::Pencil(size) => pencil(line, size),
+    BrushType::Stroke => stroke(line),
+    BrushType::Pencil => pencil(line),
     BrushType::Charcoal(size) => charcoal(line, size),
     BrushType::Ink(size) => ink(line, size),
     BrushType::Sand(size) => sand(line, size),
   }
 }
 
-fn stroke(line: Line, size: f64) -> LineString {
-  // TODO: No constant parameters
-  let line = sample_line(line.into(), LineType::Straight(20));
-  let line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
-  let line = sample_line(line, LineType::Smooth(3));
-  sample_line(line, LineType::Straight(50))
+fn stroke(line_string: LineString) -> LineString {
+  const STROKE_FACTOR: f64 = 4f64;
+  let len = line_string.euclidean_length();
+  let line_string = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * len));
+  let line_string = sample_line(line_string, LineType::Smooth(3));
+  line_string
+    .lines()
+    .flat_map(|line| {
+      let delta = line.delta();
+      let length = (delta.x.powi(2) + delta.y.powi(2)).sqrt();
+      let n_samples = (STROKE_FACTOR * length) as usize;
+      sample_line(line.into(), LineType::Straight(n_samples))
+    })
+    .collect()
 }
 
-fn pencil(line: Line, size: f64) -> LineString {
+fn pencil(line_string: LineString) -> LineString {
   // TODO: No constant parameters
-  let line = sample_line(line.into(), LineType::Straight(10));
-  let line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
-  let line = sample_line(line, LineType::Smooth(3));
-  let line = sample_line(line, LineType::Straight(500));
-  sample_line(line, LineType::Wooble(0f64, 0.0025 * size))
+  let len = line_string.euclidean_length();
+  let line_string = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * len));
+  let line_string = sample_line(line_string, LineType::Smooth(3));
+  sample_line(line_string, LineType::Wooble(100000, 0f64, 0.0025 * len))
 }
 
-fn charcoal(line: Line, size: f64) -> LineString {
-  // point width: 0.5
-  let base_line = sample_line(line.into(), LineType::Straight(10));
-  let base_line = sample_line(base_line, LineType::Wooble(0f64, 0.004 * size));
+fn charcoal(line_string: LineString, size: f64) -> LineString {
+  // TODO: No constant parameters
+  let base_line = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * size));
   //   let base_line = sample_line(base_line, LineType::Smooth(3));
   (0..50)
-    .map(|_| sample_line(base_line.clone(), LineType::Wooble(0f64, 0.001 * size)))
+    .map(|_| sample_line(base_line.clone(), LineType::Wooble(10, 0f64, 0.001 * size)))
     .map(|line| sample_line(line, LineType::Smooth(3)))
     .flat_map(|line| sample_line(line, LineType::Straight(50)))
     .collect()
 }
 
-fn sand(line: Line, size: f64) -> LineString {
-  let line = sample_line(line.into(), LineType::Straight(10));
-  let mut line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
-  let mut lines = Vec::new();
+fn sand(line_string: LineString, size: f64) -> LineString {
+  let mut base_line_string = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * size));
+  let mut line_strings = Vec::new();
   for _ in 0..100 {
-    let current_line = sample_line(line, LineType::Wooble(0f64, 0.00075 * size));
-    line = current_line.clone();
+    let current_line = sample_line(base_line_string, LineType::Wooble(10, 0f64, 0.00075 * size));
+    base_line_string = current_line.clone();
     let current_line = sample_line(current_line, LineType::Smooth(2));
     let current_line = sample_line(current_line, LineType::Straight(50));
-    lines.push(current_line);
+    line_strings.push(current_line);
   }
-  lines.into_iter().flatten().collect()
+  line_strings.into_iter().flatten().collect()
 }
 
-fn ink(line: Line, size: f64) -> LineString {
-  let line = sample_line(line.into(), LineType::Straight(10));
-  let mut line = sample_line(line, LineType::Wooble(0f64, 0.004 * size));
-  let mut lines = Vec::new();
+fn ink(line_string: LineString, size: f64) -> LineString {
+  let mut base_line_string = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * size));
+  let mut line_strings = Vec::new();
   for _ in 0..50 {
-    let current_line = sample_line(line, LineType::Wooble(0f64, 0.0005 * size));
-    line = current_line.clone();
+    let current_line = sample_line(base_line_string, LineType::Wooble(10, 0f64, 0.0005 * size));
+    base_line_string = current_line.clone();
     let current_line = sample_line(current_line, LineType::Smooth(3));
     let current_line = sample_line(current_line, LineType::Straight(100));
-    lines.push(current_line);
+    line_strings.push(current_line);
   }
-  lines.into_iter().flatten().collect()
+  line_strings.into_iter().flatten().collect()
 }
