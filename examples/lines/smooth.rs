@@ -42,7 +42,7 @@ impl StaticArtwork for Model {
       .map(|line| {
         utils::geometry::sample_line(
           line.into(),
-          utils::geometry::LineType::Wooble(50, 0f64, 0.004 * w_h as f64),
+          utils::geometry::LineType::Wooble(50, 0.004 * w_h as f64),
         )
       })
       .map(|line_string| {
