@@ -1,4 +1,4 @@
-use geo::{ChaikinSmoothing, EuclideanLength, LineString};
+use geo::{ChaikinSmoothing, EuclideanLength, LineString, Rotate};
 
 use super::{sample_coords, CoordType};
 
@@ -32,9 +32,9 @@ fn sample_wooble(line_string: LineString, n_samples: usize, std_dev: f64) -> Lin
   sample_straight(line_string, n_samples)
     .lines()
     .map(|line| {
-      let slope = line.slope();
-      let std_dev_x = std_dev * slope;
-      let std_dev_y = std_dev * if slope == 0f64 { 1f64 } else { slope.recip() };
+      let std_vec = line.rotate_around_centroid(90f64);
+      let std_dev_x = std_dev * std_vec.dx() / line.euclidean_length();
+      let std_dev_y = std_dev * std_vec.dy() / line.euclidean_length();
       sample_coords(line.start, CoordType::Slant(std_dev_x, std_dev_y))
     })
     .collect()
