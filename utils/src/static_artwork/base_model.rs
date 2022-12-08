@@ -127,7 +127,6 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
     &base_model.draw,
     &base_model.texture,
   );
-  let seed = base_model.seed;
   let snapshot =
     model
       .get_model()
@@ -135,7 +134,7 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
       .capture(device, &mut encoder, &model.get_model().texture);
   window.queue().submit(Some(encoder.finish()));
 
-  let path = captured_frame_path(app, format!("frame_{}", seed).as_str());
+  let path = captured_frame_path(app, model.current_frame_name().as_str());
   println!("Saving texture {} ...", path.to_str().unwrap());
   let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
     label: Some("Save texture Renderer"),

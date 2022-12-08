@@ -7,6 +7,7 @@ pub trait StaticArtwork {
   fn get_options() -> StaticArtworkOptions;
   fn get_model(&self) -> &StaticBaseModel;
   fn get_model_mut(&mut self) -> &mut StaticBaseModel;
+  fn current_frame_name(&self) -> String;
   fn draw(&self);
   fn key_pressed(&mut self, app: &App, key: Key);
 }

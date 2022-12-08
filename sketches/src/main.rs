@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use geo::{coord, LineString, Rect};
 use nannou::{
   prelude::{Key, BLACK, WHITE},
@@ -26,13 +28,19 @@ impl StaticArtwork for Model {
     }
   }
   fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions::default()
+    StaticArtworkOptions {
+      background_path: Some(PathBuf::from("paper.jpg")),
+      ..StaticArtworkOptions::default()
+    }
   }
   fn get_model(&self) -> &StaticBaseModel {
     &self.base_model
   }
   fn get_model_mut(&mut self) -> &mut StaticBaseModel {
     &mut self.base_model
+  }
+  fn current_frame_name(&self) -> String {
+    format!("frame_{}_{}", self.depth, self.base_model.seed)
   }
   fn draw(&self) {
     let draw = &self.base_model.draw;
@@ -46,6 +54,7 @@ impl StaticArtwork for Model {
       coord! {x:w_w as f64 / 2f64, y:w_h as f64 / 2f64 },
     );
 
+    let line_width = (rect.width().powi(2) + rect.height().powi(2)).sqrt() * 0.9;
     let mut tiles = vec![rect];
     for _ in 0..self.depth {
       tiles = tile(tiles);
@@ -61,7 +70,8 @@ impl StaticArtwork for Model {
         ),
       };
       let line_string = LineString::from(vec![start, end]);
-      let line_string = utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil);
+      let line_string =
+        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(line_width));
       line_string.coords().for_each(|coord| {
         draw
           .ellipse()

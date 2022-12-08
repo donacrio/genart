@@ -28,6 +28,9 @@ impl StaticArtwork for Model {
   fn get_model_mut(&mut self) -> &mut StaticBaseModel {
     &mut self.base_model
   }
+  fn current_frame_name(&self) -> String {
+    String::from("frame")
+  }
   fn draw(&self) {
     let draw = &self.base_model.draw;
 

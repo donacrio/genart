@@ -2,8 +2,8 @@ use crate::geometry::{sample_line, LineType};
 use geo::{EuclideanLength, LineString};
 
 pub enum BrushType {
-  Stroke,
-  Pencil,
+  Stroke(f64),
+  Pencil(f64),
   Charcoal(f64),
   Ink(f64),
   Sand(f64),
@@ -11,18 +11,17 @@ pub enum BrushType {
 
 pub fn sample_brush(line: LineString, brush_type: BrushType) -> LineString {
   match brush_type {
-    BrushType::Stroke => stroke(line),
-    BrushType::Pencil => pencil(line),
+    BrushType::Stroke(width) => stroke(line, width),
+    BrushType::Pencil(width) => pencil(line, width),
     BrushType::Charcoal(size) => charcoal(line, size),
     BrushType::Ink(size) => ink(line, size),
     BrushType::Sand(size) => sand(line, size),
   }
 }
 
-fn stroke(line_string: LineString) -> LineString {
+fn stroke(line_string: LineString, width: f64) -> LineString {
   const STROKE_FACTOR: f64 = 4f64;
-  let len = line_string.euclidean_length();
-  let line_string = sample_line(line_string, LineType::Wooble(10, 0.004 * len));
+  let line_string = sample_line(line_string, LineType::Wooble(10, 0.004 * width));
   let line_string = sample_line(line_string, LineType::Smooth(3));
   line_string
     .lines()
@@ -34,12 +33,11 @@ fn stroke(line_string: LineString) -> LineString {
     .collect()
 }
 
-fn pencil(line_string: LineString) -> LineString {
+fn pencil(line_string: LineString, width: f64) -> LineString {
   // TODO: No constant parameters
-  let len = line_string.euclidean_length();
-  let line_string = sample_line(line_string, LineType::Wooble(10, 0.004 * len));
+  let line_string = sample_line(line_string, LineType::Wooble(10, 0.004 * width));
   let line_string = sample_line(line_string, LineType::Smooth(3));
-  sample_line(line_string, LineType::Wooble(10000, 0.0025 * len))
+  sample_line(line_string, LineType::Wooble(10000, 0.0025 * width))
 }
 
 fn charcoal(line_string: LineString, size: f64) -> LineString {

@@ -1,4 +1,4 @@
-use geo::{Coord, Line};
+use geo::{Coord, EuclideanLength, Line};
 use nannou::{
   prelude::{Key, BLACK, WHITE},
   App,
@@ -28,6 +28,9 @@ impl StaticArtwork for Model {
   fn get_model_mut(&mut self) -> &mut StaticBaseModel {
     &mut self.base_model
   }
+  fn current_frame_name(&self) -> String {
+    String::from("frame")
+  }
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -42,7 +45,12 @@ impl StaticArtwork for Model {
         (start, end)
       })
       .map(|(start, end)| Line::new(start, end))
-      .map(|line| utils::brush::sample_brush(line.into(), utils::brush::BrushType::Pencil))
+      .map(|line| {
+        utils::brush::sample_brush(
+          line.into(),
+          utils::brush::BrushType::Pencil(line.euclidean_length()),
+        )
+      })
       .for_each(|line| {
         line.coords().for_each(|coord| {
           draw
