@@ -1,5 +1,8 @@
 use geo::{Coord, Line};
-use nannou::prelude::{BLACK, WHITE};
+use nannou::{
+  prelude::{Key, BLACK, WHITE},
+  App,
+};
 use utils::static_artwork::{
   make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel,
 };
@@ -55,4 +58,6 @@ impl StaticArtwork for Model {
         })
       });
   }
+
+  fn key_pressed(&mut self, _app: &App, _key: Key) {}
 }
