@@ -40,7 +40,7 @@ fn pencil(line_string: LineString) -> LineString {
   let len = line_string.euclidean_length();
   let line_string = sample_line(line_string, LineType::Wooble(10, 0f64, 0.004 * len));
   let line_string = sample_line(line_string, LineType::Smooth(3));
-  sample_line(line_string, LineType::Wooble(100000, 0f64, 0.0025 * len))
+  sample_line(line_string, LineType::Wooble(10000, 0f64, 0.0025 * len))
 }
 
 fn charcoal(line_string: LineString, size: f64) -> LineString {
