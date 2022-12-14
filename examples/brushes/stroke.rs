@@ -39,7 +39,7 @@ impl StaticArtwork for Model {
 
     (0..5)
       .map(|i| {
-        let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
+        let h = (i as f64 / 4f64 - 0.5f64) * w_h as f64 * 0.8;
         let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
         let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
         (start, end)

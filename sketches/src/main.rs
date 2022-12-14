@@ -55,7 +55,6 @@ impl StaticArtwork for Model {
     );
 
     let line_width = (rect.width().powi(2) + rect.height().powi(2)).sqrt() * 0.9;
-    println!("{line_width}");
     let mut tiles = vec![rect];
     for _ in 0..self.depth {
       tiles = tile(tiles);
@@ -70,11 +69,11 @@ impl StaticArtwork for Model {
           (tile.max().x, tile.min().y).into(),
         ),
       };
-      let width = 0.004 * line_width;
       let density = 50000 / (self.depth + 1);
+      let width = 0.004 * line_width;
       let line_string = LineString::from(vec![start, end]);
       let line_string =
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(width, density));
+        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width));
       line_string.coords().for_each(|coord| {
         draw
           .ellipse()
