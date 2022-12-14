@@ -1,4 +1,4 @@
-use geo::{Coord, EuclideanLength, Line};
+use geo::{Coord, EuclideanLength, LineString};
 use nannou::{
   prelude::{Key, BLACK, WHITE},
   App,
@@ -39,20 +39,19 @@ impl StaticArtwork for Model {
 
     (0..5)
       .map(|i| {
-        let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
+        let h = (i as f64 / 4f64 - 0.5f64) * w_h as f64 * 0.8;
         let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
         let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
         (start, end)
       })
-      .map(|(start, end)| Line::new(start, end))
-      .map(|line| {
-        utils::brush::sample_brush(
-          line.into(),
-          utils::brush::BrushType::Pencil(line.euclidean_length()),
-        )
+      .map(|(start, end)| LineString::from(vec![start, end]))
+      .map(|line_string| {
+        let width = 0.004 * line_string.euclidean_length();
+        let density = 50000;
+        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width))
       })
-      .for_each(|line| {
-        line.coords().for_each(|coord| {
+      .for_each(|line_string| {
+        line_string.coords().for_each(|coord| {
           draw
             .ellipse()
             .x_y(coord.x as f32, coord.y as f32)

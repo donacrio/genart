@@ -24,7 +24,7 @@ impl StaticArtwork for Model {
   fn new(base_model: StaticBaseModel) -> Self {
     Self {
       base_model,
-      depth: 1,
+      depth: 0,
     }
   }
   fn get_options() -> StaticArtworkOptions {
@@ -69,9 +69,11 @@ impl StaticArtwork for Model {
           (tile.max().x, tile.min().y).into(),
         ),
       };
+      let density = 50000 / (self.depth + 1);
+      let width = 0.004 * line_width;
       let line_string = LineString::from(vec![start, end]);
       let line_string =
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(line_width));
+        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width));
       line_string.coords().for_each(|coord| {
         draw
           .ellipse()
@@ -85,7 +87,11 @@ impl StaticArtwork for Model {
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
       Key::Up => self.depth += 1,
-      Key::Down => self.depth -= 1,
+      Key::Down => {
+        if self.depth > 0 {
+          self.depth -= 1
+        }
+      }
       _ => {}
     }
   }
