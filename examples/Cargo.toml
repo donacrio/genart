@@ -29,3 +29,6 @@ path = "brushes/stroke.rs"
 [[example]]
 name = "brushes_pencil"
 path = "brushes/pencil.rs"
+[[example]]
+name = "brushes_test"
+path = "brushes/test.rs"
