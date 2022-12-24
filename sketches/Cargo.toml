@@ -17,3 +17,14 @@ utils = { path = "../utils" }
 [[example]]
 name = "vibrations_lines"
 path = "examples/vibrations/lines.rs"
+
+# Spaces
+[[example]]
+name = "spaces_coloured"
+path = "examples/spaces/coloured.rs"
+[[example]]
+name = "spaces_contours"
+path = "examples/spaces/contours.rs"
+[[example]]
+name = "spaces_pencil"
+path = "examples/spaces/pencil.rs"

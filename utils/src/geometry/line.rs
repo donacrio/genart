@@ -36,7 +36,8 @@ fn sample_straight(line_string: LineString, n_samples: usize) -> LineString {
 }
 
 fn sample_wooble(line_string: LineString, n_samples: usize, std_dev: f64) -> LineString {
-  sample_straight(line_string, n_samples)
+  let last = *line_string.coords().last().unwrap();
+  let mut coords: Vec<Coord> = sample_straight(line_string, n_samples)
     .lines()
     .map(|line| {
       let std_vec = line.rotate_around_centroid(90f64);
@@ -44,7 +45,9 @@ fn sample_wooble(line_string: LineString, n_samples: usize, std_dev: f64) -> Lin
       let std_dev_y = std_dev * std_vec.dy() / line.euclidean_length();
       sample_coords(line.start, CoordType::Slant(std_dev_x, std_dev_y))
     })
-    .collect()
+    .collect();
+  coords.push(last);
+  coords.into()
 }
 
 fn sample_smooth(line_string: LineString, n_iterations: usize) -> LineString {

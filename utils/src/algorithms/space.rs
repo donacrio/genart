@@ -41,22 +41,6 @@ fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u3
     // Only divide rectangle if it's not too small
     if tile.width() > min_size && tile.height() > min_size {
       let (child_1, child_2) = divide(tile);
-      println!(
-        "child_1 {{
-            min: {:#?},
-            max:{:#?}
-        }}",
-        child_1.min(),
-        child_1.max()
-      );
-      println!(
-        "child_2 {{
-            min: {:#?},
-            max:{:#?}
-        }}",
-        child_2.min(),
-        child_2.max()
-      );
 
       let child_index_1 = space.add_node(Node::new(child_1));
       let child_index_2 = space.add_node(Node::new(child_2));
