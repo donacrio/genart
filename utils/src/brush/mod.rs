@@ -6,10 +6,10 @@ pub enum BrushType {
   Pencil(usize, f64),
 }
 
-pub fn sample_brush(line: LineString, brush_type: BrushType) -> LineString {
+pub fn sample_brush(line_string: LineString, brush_type: BrushType) -> LineString {
   match brush_type {
-    BrushType::Stroke(width) => stroke(line, width),
-    BrushType::Pencil(density, width) => pencil(line, density, width),
+    BrushType::Stroke(width) => stroke(line_string, width),
+    BrushType::Pencil(density, width) => pencil(line_string, density, width),
   }
 }
 

@@ -32,7 +32,6 @@ fn sample_straight(line_string: LineString, n_samples: usize) -> LineString {
     })
     .collect();
   coords.push(*line_string.coords().last().unwrap());
-  println!("{:#?}", coords);
   coords.into()
 }
 
