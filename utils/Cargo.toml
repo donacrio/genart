@@ -33,3 +33,9 @@ path = "examples/brushes/pencil.rs"
 [[example]]
 name = "brushes_ink"
 path = "examples/brushes/ink.rs"
+
+# Paint
+
+[[example]]
+name = "paints_rectangle"
+path = "examples/paints/fill_rectangle.rs"
