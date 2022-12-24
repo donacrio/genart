@@ -12,3 +12,8 @@ nannou = "0.18.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 utils = { path = "../utils" }
+
+# Vibrations
+[[example]]
+name = "vibrations_lines"
+path = "examples/vibrations/lines.rs"
