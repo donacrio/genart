@@ -11,3 +11,25 @@ geo = "0.23.0"
 nannou = "0.18.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
+
+# Lines
+[[example]]
+name = "lines_straight"
+path = "examples/lines/straight.rs"
+[[example]]
+name = "lines_wooble"
+path = "examples/lines/wooble.rs"
+[[example]]
+name = "lines_smooth"
+path = "examples/lines/smooth.rs"
+
+# Brushes
+[[example]]
+name = "brushes_stroke"
+path = "examples/brushes/stroke.rs"
+[[example]]
+name = "brushes_pencil"
+path = "examples/brushes/pencil.rs"
+[[example]]
+name = "brushes_ink"
+path = "examples/brushes/ink.rs"

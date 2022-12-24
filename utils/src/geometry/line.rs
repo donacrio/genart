@@ -1,4 +1,4 @@
-use geo::{ChaikinSmoothing, EuclideanLength, LineString, Rotate};
+use geo::{ChaikinSmoothing, Coord, EuclideanLength, LineString, Rotate};
 
 use super::{sample_coords, CoordType};
 
@@ -17,15 +17,22 @@ pub fn sample_line(line_string: LineString, line_type: LineType) -> LineString {
 }
 
 fn sample_straight(line_string: LineString, n_samples: usize) -> LineString {
-  let total_len = line_string.euclidean_length();
-  line_string
+  let total_length = line_string.euclidean_length();
+  let mut coords: Vec<Coord> = line_string
     .lines()
     .flat_map(|line| {
-      let n_samples = (n_samples as f64 * (line.euclidean_length() / total_len)) as usize + 1;
-      let sample_coord = line.delta() / (n_samples as f64);
-      (0..=n_samples + 1).map(move |i| line.start + sample_coord * (i as f64))
+      let mut coords = vec![line.start];
+      let n_samples = (n_samples as f64 * line.euclidean_length() / total_length).round() as usize;
+      if n_samples > 0 {
+        let sample_coord = line.delta() / (n_samples + 1) as f64;
+        let test = (1..=n_samples).map(|i| line.start + sample_coord * (i as f64));
+        coords.extend(test);
+      }
+      coords
     })
-    .collect()
+    .collect();
+  coords.push(*line_string.coords().last().unwrap());
+  coords.into()
 }
 
 fn sample_wooble(line_string: LineString, n_samples: usize, std_dev: f64) -> LineString {
