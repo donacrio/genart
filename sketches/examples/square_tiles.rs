@@ -7,41 +7,58 @@ use nannou::{
 };
 use rand::{rngs::StdRng, SeedableRng};
 use rand_distr::{Bernoulli, Distribution};
-use utils::static_artwork::{
-  make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel,
+use utils::app::{
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
 };
 
 fn main() {
-  make_static_nannou_app::<Model>().run();
+  make_static_artwork::<Model>().run();
 }
 
 struct Model {
-  base_model: StaticBaseModel,
+  base_model: BaseModel,
   depth: usize,
 }
 
-impl StaticArtwork for Model {
-  fn new(base_model: StaticBaseModel) -> Self {
+impl NannouApp for Model {
+  fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       depth: 0,
     }
   }
-  fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions {
+  fn get_options() -> NannouAppOptions {
+    NannouAppOptions {
       background_path: Some(PathBuf::from("paper.jpg")),
-      ..StaticArtworkOptions::default()
+      ..NannouAppOptions::default()
     }
   }
-  fn get_model(&self) -> &StaticBaseModel {
+  fn get_base_model(&self) -> &BaseModel {
     &self.base_model
   }
-  fn get_model_mut(&mut self) -> &mut StaticBaseModel {
+  fn get_base_model_mut(&mut self) -> &mut BaseModel {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
     format!("frame_{}_{}", self.depth, self.base_model.seed)
   }
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.depth += 1,
+      Key::Down => {
+        if self.depth > 0 {
+          self.depth -= 1
+        }
+      }
+      _ => {}
+    }
+  }
+  fn update(&mut self, _app: &App) {
+    update_static(self)
+  }
+}
+
+impl StaticApp for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -82,18 +99,6 @@ impl StaticArtwork for Model {
           .color(BLACK);
       });
     });
-  }
-
-  fn key_pressed(&mut self, _app: &App, key: Key) {
-    match key {
-      Key::Up => self.depth += 1,
-      Key::Down => {
-        if self.depth > 0 {
-          self.depth -= 1
-        }
-      }
-      _ => {}
-    }
   }
 }
 

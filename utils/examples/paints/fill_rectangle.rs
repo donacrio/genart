@@ -3,38 +3,52 @@ use nannou::{
   prelude::{Key, BLUEVIOLET, WHITE},
   App,
 };
-use utils::static_artwork::{
-  make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel,
+use utils::app::{
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
 };
 
 fn main() {
-  make_static_nannou_app::<Model>().run();
+  make_static_artwork::<Model>().run();
 }
 
 struct Model {
-  base_model: StaticBaseModel,
+  base_model: BaseModel,
   density: f64,
 }
 
-impl StaticArtwork for Model {
-  fn new(base_model: StaticBaseModel) -> Self {
+impl NannouApp for Model {
+  fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       density: 0.5,
     }
   }
-  fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions::default()
+  fn get_options() -> NannouAppOptions {
+    NannouAppOptions::default()
   }
-  fn get_model(&self) -> &StaticBaseModel {
+  fn get_base_model(&self) -> &BaseModel {
     &self.base_model
   }
-  fn get_model_mut(&mut self) -> &mut StaticBaseModel {
+  fn get_base_model_mut(&mut self) -> &mut BaseModel {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
     String::from("frame")
   }
+
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.density += 0.1,
+      Key::Down => self.density -= 0.1,
+      _ => {}
+    }
+  }
+  fn update(&mut self, _app: &App) {
+    update_static(self)
+  }
+}
+
+impl StaticApp for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -55,13 +69,5 @@ impl StaticArtwork for Model {
         .w_h(1.0, 1.0)
         .color(BLUEVIOLET);
     });
-  }
-
-  fn key_pressed(&mut self, _app: &App, key: Key) {
-    match key {
-      Key::Up => self.density += 0.1,
-      Key::Down => self.density -= 0.1,
-      _ => {}
-    }
   }
 }
