@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 
-use geo::{Coord, EuclideanLength, Line, Rect};
+use geo::{EuclideanDistance, Rect};
 use nannou::{
-  prelude::{Key, BLACK, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
+use sketches::tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
   app::{
@@ -12,44 +13,16 @@ use utils::{
   },
 };
 
-const MIN_SIZE: f64 = 100.;
-const PENCIL_WIDTH: f64 = 5.;
+const MIN_SIZE: f32 = 100.0;
 
 fn main() {
   make_static_artwork::<Model>().run();
 }
 
-struct Tile {
-  rect: Rect,
-}
-
-impl SpaceTile for Tile {
-  fn new(min: Coord, max: Coord) -> Self {
-    Tile {
-      rect: Rect::new(min, max),
-    }
-  }
-
-  fn width(&self) -> f64 {
-    self.rect.width()
-  }
-
-  fn height(&self) -> f64 {
-    self.rect.height()
-  }
-
-  fn min(&self) -> Coord {
-    self.rect.min()
-  }
-
-  fn max(&self) -> Coord {
-    self.rect.max()
-  }
-}
-
 struct Model {
   base_model: BaseModel,
   depth: u32,
+  density: f32,
 }
 
 impl NannouApp for Model {
@@ -57,6 +30,7 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 1,
+      density: 0.75,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -78,6 +52,8 @@ impl NannouApp for Model {
     match key {
       Key::Up => self.depth += 1,
       Key::Down => self.depth -= 1,
+      Key::Left => self.density -= 0.05,
+      Key::Right => self.density += 0.05,
       _ => {}
     }
   }
@@ -93,10 +69,10 @@ impl StaticArtwork for Model {
     draw.background().color(WHITE);
     let [w_w, w_h] = self.base_model.texture.size();
 
-    let w = w_w as f64 * 0.9;
-    let h = w_h as f64 * 0.9;
-    let min: Coord = (-w / 2.0, -h / 2.0).into();
-    let max: Coord = (w / 2.0, h / 2.0).into();
+    let w = w_w as f32 * 0.9;
+    let h = w_h as f32 * 0.9;
+    let min = (-w / 2.0, -h / 2.0).into();
+    let max = (w / 2.0, h / 2.0).into();
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
@@ -110,40 +86,37 @@ impl StaticArtwork for Model {
       );
 
       vec![
-        Line::new(
-          adjusted_rect.min() - (0., PENCIL_WIDTH).into(),
+        (
+          adjusted_rect.min(),
           (adjusted_rect.min().x, adjusted_rect.max().y).into(),
         ),
-        Line::new(
-          (adjusted_rect.min().x - PENCIL_WIDTH, adjusted_rect.max().y).into(),
+        (
+          (adjusted_rect.min().x, adjusted_rect.max().y).into(),
           adjusted_rect.max(),
         ),
-        Line::new(
-          adjusted_rect.max() + (0., PENCIL_WIDTH).into(),
+        (
+          adjusted_rect.max(),
           (adjusted_rect.max().x, adjusted_rect.min().y).into(),
         ),
-        Line::new(
-          (adjusted_rect.max().x, adjusted_rect.min().y + PENCIL_WIDTH).into(),
+        (
+          (adjusted_rect.max().x, adjusted_rect.min().y).into(),
           adjusted_rect.min(),
         ),
       ]
       .into_iter()
-      .map(|border| {
-        let density = (50. * border.euclidean_length()) as usize;
-        utils::texture::brush::sample_brush(
-          border.into(),
-          utils::texture::brush::BrushType::Pencil(density, PENCIL_WIDTH),
+      .for_each(|(start, end)| {
+        let weight = 0.004 * start.euclidean_distance(&end) as f32;
+        utils::draw::line::pencil(
+          start,
+          end,
+          draw,
+          utils::draw::line::LineOptions {
+            weight,
+            density: self.density,
+            color: Hsl::new(0.0, 0.0, 0.0),
+          },
         )
       })
-      .for_each(|line_string| {
-        line_string.coords().for_each(|coord| {
-          draw
-            .ellipse()
-            .x_y(coord.x as f32, coord.y as f32)
-            .w_h(1f32, 1f32)
-            .color(BLACK);
-        })
-      });
     });
   }
 }

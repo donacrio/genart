@@ -1,7 +1,7 @@
-use geo::{Point, Rect};
+use geo::{Coord, Rect};
 use rand_distr::{Distribution, Uniform};
 
-pub fn fill_rectangle(rectangle: Rect, density: f64) -> impl Iterator<Item = Point> {
+pub fn fill_rectangle(rectangle: Rect<f32>, density: f32) -> impl Iterator<Item = Coord<f32>> {
   let uniform_x = Uniform::new(rectangle.min().x, rectangle.max().x);
   let uniform_y = Uniform::new(rectangle.min().y, rectangle.max().y);
 

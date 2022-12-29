@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 
-use geo::{Coord, Rect};
+use geo::Rect;
 use nannou::{
   prelude::{Key, SANDYBROWN, WHITE},
   App,
 };
+use sketches::tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
   app::{
@@ -12,44 +13,16 @@ use utils::{
   },
 };
 
-const MIN_SIZE: f64 = 100.;
+const MIN_SIZE: f32 = 100.0;
 
 fn main() {
   make_static_artwork::<Model>().run();
 }
 
-struct Tile {
-  rect: Rect,
-}
-
-impl SpaceTile for Tile {
-  fn new(min: Coord, max: Coord) -> Self {
-    Tile {
-      rect: Rect::new(min, max),
-    }
-  }
-
-  fn width(&self) -> f64 {
-    self.rect.width()
-  }
-
-  fn height(&self) -> f64 {
-    self.rect.height()
-  }
-
-  fn min(&self) -> Coord {
-    self.rect.min()
-  }
-
-  fn max(&self) -> Coord {
-    self.rect.max()
-  }
-}
-
 struct Model {
   base_model: BaseModel,
   depth: u32,
-  density: f64,
+  density: f32,
 }
 
 impl NannouApp for Model {
@@ -96,10 +69,10 @@ impl StaticArtwork for Model {
     draw.background().color(WHITE);
     let [w_w, w_h] = self.base_model.texture.size();
 
-    let w = w_w as f64 * 0.9;
-    let h = w_h as f64 * 0.9;
-    let min: Coord = (-w / 2.0, -h / 2.0).into();
-    let max: Coord = (w / 2.0, h / 2.0).into();
+    let w = w_w as f32 * 0.9;
+    let h = w_h as f32 * 0.9;
+    let min = (-w / 2.0, -h / 2.0).into();
+    let max = (w / 2.0, h / 2.0).into();
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
@@ -112,11 +85,7 @@ impl StaticArtwork for Model {
         tile.rect.max() - (10.0, 10.0).into(),
       );
       utils::texture::fill::fill_rectangle(adjusted_rect, self.density).for_each(|p| {
-        draw
-          .ellipse()
-          .x_y(p.x() as f32, p.y() as f32)
-          .w_h(1.0, 1.0)
-          .color(SANDYBROWN);
+        draw.ellipse().x_y(p.x, p.y).w_h(1.0, 1.0).color(SANDYBROWN);
       });
     });
   }

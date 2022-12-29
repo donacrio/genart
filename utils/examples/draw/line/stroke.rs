@@ -1,4 +1,3 @@
-use geo::Coord;
 use nannou::{
   prelude::{Hsl, Key, WHITE},
   App,
@@ -16,11 +15,17 @@ fn main() {
 
 struct Model {
   base_model: BaseModel,
+  weight: f32,
+  density: f32,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
-    Self { base_model }
+    Self {
+      base_model,
+      weight: 10.0,
+      density: 0.75,
+    }
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions::default()
@@ -34,7 +39,15 @@ impl NannouApp for Model {
   fn current_frame_name(&self) -> String {
     String::from("frame")
   }
-  fn key_pressed(&mut self, _app: &App, _key: Key) {}
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.weight += 5.0,
+      Key::Down => self.weight -= 5.0,
+      Key::Left => self.density -= 0.05,
+      Key::Right => self.density += 0.05,
+      _ => {}
+    }
+  }
   fn update(&mut self, _app: &App) {
     update_static(self)
   }
@@ -49,9 +62,9 @@ impl StaticArtwork for Model {
 
     (0..5)
       .map(|i| {
-        let h = (i as f64 / 5f64 - 0.5f64) * w_h as f64 / 2f64;
-        let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
-        let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
+        let h = (i as f32 / 5. - 0.5) * w_h as f32 / 2.;
+        let start = (-(w_w as f32) * 0.9 / 2., h).into();
+        let end = (w_w as f32 * 0.90 / 2., h).into();
         (start, end)
       })
       .for_each(|(start, end)| {
@@ -60,8 +73,8 @@ impl StaticArtwork for Model {
           end,
           draw,
           LineOptions {
-            weight: 10.0,
-            density: 1.0,
+            weight: self.weight,
+            density: self.density,
             color: Hsl::new(0.0, 0.0, 0.0),
           },
         )

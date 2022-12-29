@@ -6,23 +6,23 @@ use std::collections::VecDeque;
 use crate::data_structures::graph::{Graph, Node};
 
 pub trait SpaceTile {
-  fn new(min: Coord, max: Coord) -> Self;
-  fn width(&self) -> f64;
-  fn height(&self) -> f64;
-  fn min(&self) -> Coord;
-  fn max(&self) -> Coord;
+  fn new(min: Coord<f32>, max: Coord<f32>) -> Self;
+  fn width(&self) -> f32;
+  fn height(&self) -> f32;
+  fn min(&self) -> Coord<f32>;
+  fn max(&self) -> Coord<f32>;
 }
 
 pub type Space<T> = Graph<T>;
 
-pub fn compute_space<T: SpaceTile>(root: T, max_children: u32, min_size: f64) -> Space<T> {
+pub fn compute_space<T: SpaceTile>(root: T, max_children: u32, min_size: f32) -> Space<T> {
   let mut space = Space::default();
   let root = Node::new(root);
   split_bfs(&mut space, root, max_children, min_size);
   space
 }
 
-fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u32, min_size: f64) {
+fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u32, min_size: f32) {
   let parent_index = space.add_node(root);
 
   let mut queue = VecDeque::new();

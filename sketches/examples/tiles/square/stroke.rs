@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use geo::{coord, LineString, Rect};
+use geo::{coord, Rect};
 use nannou::{
-  prelude::{Key, BLACK, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
 use rand::{rngs::StdRng, SeedableRng};
@@ -18,6 +18,7 @@ fn main() {
 struct Model {
   base_model: BaseModel,
   depth: usize,
+  density: f32,
 }
 
 impl NannouApp for Model {
@@ -25,6 +26,7 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 0,
+      density: 0.75,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -50,6 +52,8 @@ impl NannouApp for Model {
           self.depth -= 1
         }
       }
+      Key::Left => self.density -= 0.05,
+      Key::Right => self.density += 0.05,
       _ => {}
     }
   }
@@ -67,8 +71,8 @@ impl StaticArtwork for Model {
     let [w_w, w_h] = self.base_model.texture.size();
 
     let rect = Rect::new(
-      coord! {x:-(w_w as f64 / 2f64), y:-(w_h as f64 / 2f64) },
-      coord! {x:w_w as f64 / 2f64, y:w_h as f64 / 2f64 },
+      coord! {x:-(w_w as f32 / 2.), y:-(w_h as f32 / 2.) },
+      coord! {x:w_w as f32 / 2., y:w_h as f32 / 2. },
     );
 
     let line_width = (rect.width().powi(2) + rect.height().powi(2)).sqrt() * 0.9;
@@ -86,25 +90,22 @@ impl StaticArtwork for Model {
           (tile.max().x, tile.min().y).into(),
         ),
       };
-      let density = 50000 / (self.depth + 1);
-      let width = 0.004 * line_width;
-      let line_string = LineString::from(vec![start, end]);
-      let line_string = utils::texture::brush::sample_brush(
-        line_string,
-        utils::texture::brush::BrushType::Pencil(density, width),
+      let weight = 0.004 * line_width as f32;
+      utils::draw::line::stroke(
+        start,
+        end,
+        draw,
+        utils::draw::line::LineOptions {
+          weight,
+          density: self.density,
+          color: Hsl::new(0.0, 0.0, 0.0),
+        },
       );
-      line_string.coords().for_each(|coord| {
-        draw
-          .ellipse()
-          .x_y(coord.x as f32, coord.y as f32)
-          .w_h(1f32, 1f32)
-          .color(BLACK);
-      });
     });
   }
 }
 
-fn tile(tiles: Vec<Rect>) -> Vec<Rect> {
+fn tile(tiles: Vec<Rect<f32>>) -> Vec<Rect<f32>> {
   tiles
     .iter()
     .flat_map(|rect| rect.split_x().map(|x_rect| x_rect.split_y()))

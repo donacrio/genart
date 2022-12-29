@@ -1,6 +1,6 @@
 use geo::{Coord, EuclideanDistance, Line, LineInterpolatePoint};
 use nannou::{
-  prelude::{pt2, Hsl, Hsla, Vec2, PI},
+  prelude::{Hsl, Hsla, Vec2, PI},
   Draw,
 };
 use rand_distr::{Distribution, Uniform};
@@ -11,9 +11,9 @@ pub struct LineOptions {
   pub color: Hsl,
 }
 
-pub fn stroke(start: Coord, end: Coord, draw: &Draw, options: LineOptions) {
-  let start = pt2(start.x as f32, start.y as f32);
-  let end = pt2(end.x as f32, end.y as f32);
+pub fn stroke(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
+  let start = Vec2::from(start.x_y());
+  let end = Vec2::from(end.x_y());
   let color = Hsla::new(
     options.color.hue,
     options.color.saturation,

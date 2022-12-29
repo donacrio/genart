@@ -16,11 +16,17 @@ fn main() {
 
 struct Model {
   base_model: BaseModel,
+  weight: f32,
+  density: f32,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
-    Self { base_model }
+    Self {
+      base_model,
+      weight: 10.0,
+      density: 0.75,
+    }
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions::default()
@@ -34,7 +40,15 @@ impl NannouApp for Model {
   fn current_frame_name(&self) -> String {
     String::from("frame")
   }
-  fn key_pressed(&mut self, _app: &App, _key: Key) {}
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.weight += 5.0,
+      Key::Down => self.weight -= 5.0,
+      Key::Left => self.density -= 0.05,
+      Key::Right => self.density += 0.05,
+      _ => {}
+    }
+  }
   fn update(&mut self, _app: &App) {
     update_static(self)
   }
@@ -60,8 +74,8 @@ impl StaticArtwork for Model {
           end,
           draw,
           LineOptions {
-            weight: 25.0,
-            density: 1.0,
+            weight: self.weight,
+            density: self.density,
             color: Hsl::new(0.0, 0.0, 0.0),
           },
         )

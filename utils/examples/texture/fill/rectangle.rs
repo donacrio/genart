@@ -13,7 +13,7 @@ fn main() {
 
 struct Model {
   base_model: BaseModel,
-  density: f64,
+  density: f32,
 }
 
 impl NannouApp for Model {
@@ -55,17 +55,16 @@ impl StaticArtwork for Model {
     draw.background().color(WHITE);
     let [w_w, w_h] = self.base_model.texture.size();
 
-    let w = w_w as f64 * 0.9;
-    let h = w_h as f64 * 0.9;
-    let min: Coord = (-w / 2.0, -h / 2.0).into();
-    let max: Coord = (w / 2.0, h / 2.0).into();
+    let w = w_w as f32 * 0.9;
+    let h = w_h as f32 * 0.9;
+    let min: Coord<f32> = (-w / 2.0, -h / 2.0).into();
+    let max: Coord<f32> = (w / 2.0, h / 2.0).into();
     let rect = Rect::new(min, max);
 
     utils::texture::fill::fill_rectangle(rect, self.density).for_each(|point| {
       draw
         .ellipse()
-        .x(point.x() as f32)
-        .y(point.y() as f32)
+        .x_y(point.x, point.y)
         .w_h(1.0, 1.0)
         .color(BLUEVIOLET);
     });
