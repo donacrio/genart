@@ -7,7 +7,9 @@ use nannou::{
 };
 use utils::{
   algorithms::space::SpaceTile,
-  app::{make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp},
+  app::{
+    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
+  },
 };
 
 const MIN_SIZE: f64 = 100.;
@@ -84,7 +86,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
