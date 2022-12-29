@@ -4,7 +4,7 @@ use nannou::{
   App,
 };
 use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
 };
 
 fn main() {
@@ -37,7 +37,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -53,9 +53,9 @@ impl StaticApp for Model {
       })
       .map(|(start, end)| Line::new(start, end))
       .map(|line| {
-        utils::brush::sample_brush(
+        utils::texture::brush::sample_brush(
           line.into(),
-          utils::brush::BrushType::Stroke(line.euclidean_length()),
+          utils::texture::brush::BrushType::Stroke(line.euclidean_length()),
         )
       })
       .for_each(|line| {

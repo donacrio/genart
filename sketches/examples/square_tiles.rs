@@ -8,7 +8,7 @@ use nannou::{
 use rand::{rngs::StdRng, SeedableRng};
 use rand_distr::{Bernoulli, Distribution};
 use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
 };
 
 fn main() {
@@ -58,7 +58,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -89,8 +89,10 @@ impl StaticApp for Model {
       let density = 50000 / (self.depth + 1);
       let width = 0.004 * line_width;
       let line_string = LineString::from(vec![start, end]);
-      let line_string =
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width));
+      let line_string = utils::texture::brush::sample_brush(
+        line_string,
+        utils::texture::brush::BrushType::Pencil(density, width),
+      );
       line_string.coords().for_each(|coord| {
         draw
           .ellipse()

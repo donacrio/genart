@@ -6,7 +6,7 @@ use nannou::{
   App,
 };
 use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
 };
 
 const N_LINES: usize = 25;
@@ -59,7 +59,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -96,7 +96,10 @@ impl StaticApp for Model {
         let factor = 200f64 * ((start.x / w_w as f64) + 0.5) * ((start.y / w_h as f64) - 0.5);
         let width = 0.0001 * line_string.euclidean_length() * factor;
         let density = 50000;
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width))
+        utils::texture::brush::sample_brush(
+          line_string,
+          utils::texture::brush::BrushType::Pencil(density, width),
+        )
       })
       .collect::<Vec<LineString>>();
 

@@ -4,7 +4,7 @@ use nannou::{
   App,
 };
 use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp,
+  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
 };
 
 fn main() {
@@ -48,7 +48,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -61,7 +61,7 @@ impl StaticApp for Model {
     let max: Coord = (w / 2.0, h / 2.0).into();
     let rect = Rect::new(min, max);
 
-    utils::paint::fill_rectangle(rect, self.density).for_each(|point| {
+    utils::texture::fill::fill_rectangle(rect, self.density).for_each(|point| {
       draw
         .ellipse()
         .x(point.x() as f32)

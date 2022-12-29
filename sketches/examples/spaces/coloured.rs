@@ -6,8 +6,10 @@ use nannou::{
   App,
 };
 use utils::{
-  algorithms::space::SpaceTile,
-  app::{make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp},
+  algorithm::space::SpaceTile,
+  app::{
+    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
+  },
 };
 
 const MIN_SIZE: f64 = 100.;
@@ -87,7 +89,7 @@ impl NannouApp for Model {
   }
 }
 
-impl StaticApp for Model {
+impl StaticArtwork for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -101,7 +103,7 @@ impl StaticApp for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let mut space = utils::algorithms::space::compute_space(root, max_children, MIN_SIZE);
+    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
       let tile = space.get_node(*index).unwrap().content();
@@ -109,7 +111,7 @@ impl StaticApp for Model {
         tile.rect.min() + (10.0, 10.0).into(),
         tile.rect.max() - (10.0, 10.0).into(),
       );
-      utils::paint::fill_rectangle(adjusted_rect, self.density).for_each(|p| {
+      utils::texture::fill::fill_rectangle(adjusted_rect, self.density).for_each(|p| {
         draw
           .ellipse()
           .x_y(p.x() as f32, p.y() as f32)
