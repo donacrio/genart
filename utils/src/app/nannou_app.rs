@@ -1,13 +1,44 @@
-use std::path::PathBuf;
-
-use super::artwork::{StaticArtwork, StaticArtworkOptions};
 use nannou::{
   prelude::{Key, Update},
-  wgpu, window, App, Draw, Frame, LoopMode,
+  wgpu, window, App, Draw, Frame,
 };
 use rand::random;
+use std::path::PathBuf;
 
-pub struct StaticBaseModel {
+const TEXTURE_SIZE: [u32; 2] = [2160, 2160];
+const RENDER_SIZE: [u32; 2] = [540, 540];
+
+pub trait NannouApp {
+  fn new(model: BaseModel) -> Self;
+  fn get_options() -> NannouAppOptions;
+  fn get_base_model(&self) -> &BaseModel;
+  fn get_base_model_mut(&mut self) -> &mut BaseModel;
+  fn current_frame_name(&self) -> String;
+  fn key_pressed(&mut self, app: &App, key: Key);
+  fn update(&mut self, app: &App);
+}
+
+// pub trait AppUpdate<T> {
+//   fn update(model: &mut T, app: &App);
+// }
+
+pub struct NannouAppOptions {
+  pub texture_size: [u32; 2],
+  pub render_size: [u32; 2],
+  pub background_path: Option<PathBuf>,
+}
+
+impl Default for NannouAppOptions {
+  fn default() -> Self {
+    Self {
+      texture_size: TEXTURE_SIZE,
+      render_size: RENDER_SIZE,
+      background_path: None,
+    }
+  }
+}
+
+pub struct BaseModel {
   window_id: window::Id,
   pub draw: Draw,
   pub texture: wgpu::Texture,
@@ -18,10 +49,7 @@ pub struct StaticBaseModel {
   pub seed: u64,
 }
 
-fn make_base_model<T: 'static + StaticArtwork>(
-  app: &App,
-  options: StaticArtworkOptions,
-) -> StaticBaseModel {
+fn make_base_model<T: 'static + NannouApp>(app: &App, options: NannouAppOptions) -> BaseModel {
   let [win_w, win_h] = options.render_size;
   let window_id = app
     .new_window()
@@ -71,10 +99,10 @@ fn make_base_model<T: 'static + StaticArtwork>(
   let background_texture = options.background_path.map(|background_path| {
     wgpu::Texture::from_path(&window, images_path(app, background_path)).unwrap()
   });
-  let seed = random();
+  let seed = rand::random();
   // Make sure the directory where we will save images to exists.
   std::fs::create_dir_all(&capture_directory(app)).unwrap();
-  StaticBaseModel {
+  BaseModel {
     window_id,
     draw,
     texture,
@@ -86,36 +114,33 @@ fn make_base_model<T: 'static + StaticArtwork>(
   }
 }
 
-pub fn make_static_nannou_app<T: 'static + StaticArtwork>() -> nannou::app::Builder<T> {
-  nannou::app(model)
-    .update(update)
-    .exit(exit)
-    .loop_mode(LoopMode::wait())
+pub fn make_base_nannou_app<T: 'static + NannouApp>() -> nannou::app::Builder<T> {
+  nannou::app(model).update(update).exit(exit)
 }
 
-fn model<T: 'static + StaticArtwork>(app: &App) -> T {
+fn model<T: 'static + NannouApp>(app: &App) -> T {
   T::new(make_base_model::<T>(app, T::get_options()))
 }
 
-fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
-  println!("\nUsing seed {}", model.get_model().seed);
-  if let Some(background_texture) = &model.get_model().background_texture {
+fn update<T: NannouApp>(app: &App, model: &mut T, _update: Update) {
+  println!("\nUsing seed {}", model.get_base_model().seed);
+  if let Some(background_texture) = &model.get_base_model().background_texture {
     // Rendering texture as background
     let sampler = wgpu::SamplerBuilder::new()
       .address_mode(wgpu::AddressMode::ClampToBorder)
       .into_descriptor();
-    let draw = &model.get_model().draw;
+    let draw = &model.get_base_model().draw;
     draw.sampler(sampler);
     draw.texture(&background_texture);
   }
 
   println!("Computing artwork...");
-  model.draw();
+  model.update(app);
 
   println!("Drawing to texture...");
-  let window = app.window(model.get_model().window_id).unwrap();
+  let window = app.window(model.get_base_model().window_id).unwrap();
   let device = window.device();
-  let base_model = model.get_model_mut();
+  let base_model = model.get_base_model_mut();
 
   // Render to texture
   let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -127,11 +152,11 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
     &base_model.draw,
     &base_model.texture,
   );
-  let snapshot =
-    model
-      .get_model()
-      .texture_capturer
-      .capture(device, &mut encoder, &model.get_model().texture);
+  let snapshot = model.get_base_model().texture_capturer.capture(
+    device,
+    &mut encoder,
+    &model.get_base_model().texture,
+  );
   window.queue().submit(Some(encoder.finish()));
 
   let path = captured_frame_path(app, model.current_frame_name().as_str());
@@ -150,26 +175,26 @@ fn update<T: StaticArtwork>(app: &App, model: &mut T, _update: Update) {
   window.queue().submit(Some(encoder.finish()));
 }
 
-fn view<T: StaticArtwork>(_app: &App, model: &T, frame: Frame) {
+fn view<T: NannouApp>(_app: &App, model: &T, frame: Frame) {
   model
-    .get_model()
+    .get_base_model()
     .texture_reshaper
     .encode_render_pass(frame.texture_view(), &mut frame.command_encoder());
 }
 
 // Wait for capture to finish.
-fn exit<T: StaticArtwork>(app: &App, model: T) {
-  let window = app.window(model.get_model().window_id).unwrap();
+fn exit<T: NannouApp>(app: &App, model: T) {
+  let window = app.window(model.get_base_model().window_id).unwrap();
   let device = window.device();
   model
-    .get_model()
+    .get_base_model()
     .texture_capturer
     .await_active_snapshots(device)
     .unwrap();
 }
 
-fn key_pressed<T: StaticArtwork>(app: &App, model: &mut T, key: Key) {
-  let base_model = model.get_model_mut();
+fn key_pressed<T: NannouApp>(app: &App, model: &mut T, key: Key) {
+  let base_model = model.get_base_model_mut();
   if key == Key::S {
     let seed = random();
     base_model.seed = seed;

@@ -5,13 +5,13 @@ use nannou::{
 };
 use utils::{
   algorithms::space::SpaceTile,
-  static_artwork::{make_static_nannou_app, StaticArtwork, StaticArtworkOptions, StaticBaseModel},
+  app::{make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticApp},
 };
 
 const MIN_SIZE: f64 = 1f64;
 
 fn main() {
-  make_static_nannou_app::<Model>().run();
+  make_static_artwork::<Model>().run();
 }
 
 struct Tile {
@@ -43,29 +43,42 @@ impl SpaceTile for Tile {
 }
 
 struct Model {
-  base_model: StaticBaseModel,
+  base_model: BaseModel,
   depth: u32,
 }
 
-impl StaticArtwork for Model {
-  fn new(base_model: StaticBaseModel) -> Self {
+impl NannouApp for Model {
+  fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       depth: 1,
     }
   }
-  fn get_options() -> StaticArtworkOptions {
-    StaticArtworkOptions::default()
+  fn get_options() -> NannouAppOptions {
+    NannouAppOptions::default()
   }
-  fn get_model(&self) -> &StaticBaseModel {
+  fn get_base_model(&self) -> &BaseModel {
     &self.base_model
   }
-  fn get_model_mut(&mut self) -> &mut StaticBaseModel {
+  fn get_base_model_mut(&mut self) -> &mut BaseModel {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
     String::from("frame")
   }
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Up => self.depth += 1,
+      Key::Down => self.depth -= 1,
+      _ => {}
+    }
+  }
+  fn update(&mut self, _app: &App) {
+    update_static(self)
+  }
+}
+
+impl StaticApp for Model {
   fn draw(&self) {
     let draw = &self.base_model.draw;
 
@@ -90,13 +103,5 @@ impl StaticArtwork for Model {
         .w_h(tile.width() as f32 - 10.0, tile.height() as f32 - 10.0)
         .color(BLACK);
     });
-  }
-
-  fn key_pressed(&mut self, _app: &App, key: Key) {
-    match key {
-      Key::Up => self.depth += 1,
-      Key::Down => self.depth -= 1,
-      _ => {}
-    }
   }
 }

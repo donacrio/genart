@@ -36,7 +36,7 @@ path = "examples/brushes/ink.rs"
 
 # Paints
 [[example]]
-name = "paints_rectangle"
+name = "paints_fill_rectangle"
 path = "examples/paints/fill_rectangle.rs"
 
 # Algorithms
