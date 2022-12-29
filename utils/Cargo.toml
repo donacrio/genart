@@ -17,6 +17,17 @@ rand_distr = "0.4.3"
 name = "algorithm_space"
 path = "examples/algorithm/space.rs"
 
+# Draw
+[[example]]
+name = "draw_line_stroke"
+path = "examples/draw/line/stroke.rs"
+[[example]]
+name = "draw_line_japanese_brush"
+path = "examples/draw/line/japanese_brush.rs"
+[[example]]
+name = "draw_line_pencil"
+path = "examples/draw/line/pencil.rs"
+
 # Geometry
 [[example]]
 name = "geometry_line_straight"
