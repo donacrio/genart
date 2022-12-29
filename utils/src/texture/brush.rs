@@ -4,12 +4,14 @@ use geo::{EuclideanLength, LineString};
 pub enum BrushType {
   Stroke(f64),
   Pencil(usize, f64),
+  Sand,
 }
 
 pub fn sample_brush(line_string: LineString, brush_type: BrushType) -> LineString {
   match brush_type {
     BrushType::Stroke(width) => stroke(line_string, width),
     BrushType::Pencil(density, width) => pencil(line_string, density, width),
+    BrushType::Sand => sand(line_string),
   }
 }
 
@@ -32,4 +34,8 @@ fn pencil(line_string: LineString, density: usize, width: f64) -> LineString {
   let line_string = sample_line(line_string, LineType::Wooble(10, 0.004 * line_length));
   let line_string = sample_line(line_string, LineType::Smooth(3));
   sample_line(line_string, LineType::Wooble(density, width))
+}
+
+fn sand(_line_string: LineString) -> LineString {
+  todo!()
 }
