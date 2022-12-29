@@ -53,9 +53,9 @@ impl StaticArtwork for Model {
       })
       .map(|(start, end)| Line::new(start, end))
       .map(|line| {
-        utils::brush::sample_brush(
+        utils::texture::brush::sample_brush(
           line.into(),
-          utils::brush::BrushType::Stroke(line.euclidean_length()),
+          utils::texture::brush::BrushType::Stroke(line.euclidean_length()),
         )
       })
       .for_each(|line| {

@@ -96,7 +96,10 @@ impl StaticArtwork for Model {
         let factor = 200f64 * ((start.x / w_w as f64) + 0.5) * ((start.y / w_h as f64) - 0.5);
         let width = 0.0001 * line_string.euclidean_length() * factor;
         let density = 50000;
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width))
+        utils::texture::brush::sample_brush(
+          line_string,
+          utils::texture::brush::BrushType::Pencil(density, width),
+        )
       })
       .collect::<Vec<LineString>>();
 

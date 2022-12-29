@@ -55,7 +55,10 @@ impl StaticArtwork for Model {
       .map(|line_string| {
         let width = 0.004 * line_string.euclidean_length();
         let density = 50000;
-        utils::brush::sample_brush(line_string, utils::brush::BrushType::Pencil(density, width))
+        utils::texture::brush::sample_brush(
+          line_string,
+          utils::texture::brush::BrushType::Pencil(density, width),
+        )
       })
       .for_each(|line_string| {
         line_string.coords().for_each(|coord| {

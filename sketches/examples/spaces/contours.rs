@@ -6,7 +6,7 @@ use nannou::{
   App,
 };
 use utils::{
-  algorithms::space::SpaceTile,
+  algorithm::space::SpaceTile,
   app::{
     make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
   },
@@ -100,7 +100,7 @@ impl StaticArtwork for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let mut space = utils::algorithms::space::compute_space(root, max_children, MIN_SIZE);
+    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
       let tile = space.get_node(*index).unwrap().content();
@@ -130,9 +130,9 @@ impl StaticArtwork for Model {
       .into_iter()
       .map(|border| {
         let density = (50. * border.euclidean_length()) as usize;
-        utils::brush::sample_brush(
+        utils::texture::brush::sample_brush(
           border.into(),
-          utils::brush::BrushType::Pencil(density, PENCIL_WIDTH),
+          utils::texture::brush::BrushType::Pencil(density, PENCIL_WIDTH),
         )
       })
       .for_each(|line_string| {

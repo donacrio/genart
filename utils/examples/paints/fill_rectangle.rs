@@ -61,7 +61,7 @@ impl StaticArtwork for Model {
     let max: Coord = (w / 2.0, h / 2.0).into();
     let rect = Rect::new(min, max);
 
-    utils::paint::fill_rectangle(rect, self.density).for_each(|point| {
+    utils::texture::fill::fill_rectangle(rect, self.density).for_each(|point| {
       draw
         .ellipse()
         .x(point.x() as f32)
