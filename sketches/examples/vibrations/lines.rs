@@ -1,16 +1,19 @@
-use std::path::PathBuf;
-
-use geo::{Coord, EuclideanLength, LineString};
+use geo::{EuclideanLength, LineString};
 use nannou::{
-  prelude::{Key, BLACK, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
-use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
+use std::path::PathBuf;
+use utils::{
+  app::{
+    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
+  },
+  draw::line::LineOptions,
 };
 
 const N_LINES: usize = 25;
 
+#[deprecated]
 fn main() {
   make_static_artwork::<Model>().run();
 }
@@ -67,50 +70,44 @@ impl StaticArtwork for Model {
 
     let [w_w, w_h] = self.base_model.texture.size();
 
-    let line_strings = (0..N_LINES)
+    (0..N_LINES)
       .map(|i| {
-        let h = (i as f64 / (N_LINES - 1) as f64 - 0.5f64) * w_h as f64 * 0.8;
-        let start: Coord = (-(w_w as f64) * 0.90f64 / 2f64, h).into();
-        let end: Coord = (w_w as f64 * 0.90f64 / 2f64, h).into();
+        let h = (i as f32 / (N_LINES - 1) as f32 - 0.5) * w_h as f32 * 0.8;
+        let start = (-(w_w as f32) * 0.9 / 2., h).into();
+        let end = (w_w as f32 * 0.9 / 2., h).into();
         (start, end)
       })
-      .map(|(start, end)| LineString::from(vec![start, end]))
-      .map(|line_string| {
-        utils::geometry::sample_line(line_string, utils::geometry::LineType::Straight(50))
+      .map(|(start, end)| {
+        utils::geometry::line::sample_straight(start, end, 50).collect::<LineString<f32>>()
       })
       .map(|line_string| {
         line_string
           .lines()
           .flat_map(|line| {
             let factor =
-              2f64 * ((line.start.x / w_w as f64) + 0.5) * ((line.start.y / w_h as f64) - 0.5);
-            utils::geometry::sample_line(
-              line.into(),
-              utils::geometry::LineType::Wooble(1, line.euclidean_length() * factor),
-            )
+              2.0 * ((line.start.x / w_w as f32) + 0.5) * ((line.start.y / w_h as f32) - 0.5);
+            let std_dev = line.euclidean_length() * factor;
+            utils::geometry::line::sample_wooble(line.start, line.end, 1, std_dev)
           })
-          .collect::<LineString>()
+          .collect::<LineString<f32>>()
       })
-      .map(|line_string| {
-        let start = line_string.coords().next().unwrap();
-        let factor = 200f64 * ((start.x / w_w as f64) + 0.5) * ((start.y / w_h as f64) - 0.5);
-        let width = 0.0001 * line_string.euclidean_length() * factor;
-        let density = 50000;
-        utils::texture::brush::sample_brush(
-          line_string,
-          utils::texture::brush::BrushType::Pencil(density, width),
-        )
-      })
-      .collect::<Vec<LineString>>();
-
-    line_strings.iter().for_each(|line_string| {
-      line_string.coords().for_each(|coord| {
-        draw
-          .ellipse()
-          .x_y(coord.x as f32, coord.y as f32)
-          .w_h(1f32, 1f32)
-          .color(BLACK);
-      })
-    });
+      .for_each(|line_string| {
+        line_string.lines().for_each(|line| {
+          let factor =
+            200.0 * ((line.start.x / w_w as f32) + 0.5) * ((line.start.y / w_h as f32) - 0.5);
+          let weight = 0.0001 * line_string.euclidean_length() * factor;
+          let density = 0.75;
+          utils::draw::line::pencil(
+            line.start,
+            line.end,
+            draw,
+            LineOptions {
+              weight,
+              density,
+              color: Hsl::new(0.0, 0.0, 0.0),
+            },
+          );
+        });
+      });
   }
 }

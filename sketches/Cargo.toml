@@ -6,7 +6,7 @@ authors = ["Donatien Criaud <donatien.criaud@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dev-dependencies]
+[dependencies]
 geo = "0.23.0"
 nannou = "0.18.1"
 rand = "0.8.5"
@@ -25,6 +25,14 @@ path = "examples/spaces/coloured.rs"
 [[example]]
 name = "spaces_contours"
 path = "examples/spaces/contours.rs"
+
+# Tiles
 [[example]]
-name = "spaces_pencil"
-path = "examples/spaces/pencil.rs"
+name = "tiles_square_stroke"
+path = "examples/tiles/square/stroke.rs"
+[[example]]
+name = "tiles_square_japanese_brush"
+path = "examples/tiles/square/japanese_brush.rs"
+[[example]]
+name = "tiles_square_pencil"
+path = "examples/tiles/square/pencil.rs"

@@ -10,36 +10,36 @@ use utils::{
   },
 };
 
-const MIN_SIZE: f64 = 1f64;
+const MIN_SIZE: f32 = 1.0;
 
 fn main() {
   make_static_artwork::<Model>().run();
 }
 
 struct Tile {
-  rect: Rect,
+  pub rect: Rect<f32>,
 }
 
 impl SpaceTile for Tile {
-  fn new(min: Coord, max: Coord) -> Self {
+  fn new(min: Coord<f32>, max: Coord<f32>) -> Self {
     Tile {
       rect: Rect::new(min, max),
     }
   }
 
-  fn width(&self) -> f64 {
+  fn width(&self) -> f32 {
     self.rect.width()
   }
 
-  fn height(&self) -> f64 {
+  fn height(&self) -> f32 {
     self.rect.height()
   }
 
-  fn min(&self) -> Coord {
+  fn min(&self) -> Coord<f32> {
     self.rect.min()
   }
 
-  fn max(&self) -> Coord {
+  fn max(&self) -> Coord<f32> {
     self.rect.max()
   }
 }
@@ -87,10 +87,10 @@ impl StaticArtwork for Model {
     draw.background().color(WHITE);
     let [w_w, w_h] = self.base_model.texture.size();
 
-    let w = w_w as f64 * 0.9;
-    let h = w_h as f64 * 0.9;
-    let min: Coord = (-w / 2.0, -h / 2.0).into();
-    let max: Coord = (w / 2.0, h / 2.0).into();
+    let w = w_w as f32 * 0.9;
+    let h = w_h as f32 * 0.9;
+    let min = (-w / 2.0, -h / 2.0).into();
+    let max = (w / 2.0, h / 2.0).into();
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);

@@ -15,7 +15,7 @@ rand_distr = "0.4.3"
 # Algorithms
 [[example]]
 name = "algorithm_space"
-path = "examples/algorithm/space.rs"
+path = "examples/algorithm/space/space.rs"
 
 # Draw
 [[example]]
@@ -28,27 +28,8 @@ path = "examples/draw/line/japanese_brush.rs"
 name = "draw_line_pencil"
 path = "examples/draw/line/pencil.rs"
 
-# Geometry
-[[example]]
-name = "geometry_line_straight"
-path = "examples/geometry/line/straight.rs"
-[[example]]
-name = "geometry_line_wooble"
-path = "examples/geometry/line/wooble.rs"
-[[example]]
-name = "geometry_line_smooth"
-path = "examples/geometry/line/smooth.rs"
 
 # Texture
 [[example]]
-name = "texture_brush_stroke"
-path = "examples/texture/brush/stroke.rs"
-[[example]]
-name = "texture_brush_pencil"
-path = "examples/texture/brush/pencil.rs"
-[[example]]
-name = "texture_brush_ink"
-path = "examples/texture/brush/ink.rs"
-[[example]]
-name = "texture_fill_fill_rectangle"
-path = "examples/texture/fill/fill_rectangle.rs"
+name = "texture_fill_rectangle"
+path = "examples/texture/fill/rectangle.rs"
