@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use geo::Rect;
 use nannou::{
-  prelude::{Key, SANDYBROWN, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
 use rand::{rngs::StdRng, SeedableRng};
@@ -23,15 +23,19 @@ fn main() {
 struct Model {
   base_model: BaseModel,
   depth: u32,
+  weight: f32,
   density: f32,
+  elapsed_frames: u32,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
-      depth: 1,
-      density: 0.5,
+      depth: 0,
+      weight: 5.0,
+      density: 0.75,
+      elapsed_frames: 0,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -47,19 +51,29 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    String::from("frame")
+    // format!(
+    //   "frame_{}_{}_{}_{}",
+    //   self.elapsed_frames,
+    //   self.get_base_model().seed,
+    //   self.weight,
+    //   self.density * 100.,
+    // )
+    format!("frame_{}", self.elapsed_frames,)
   }
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
-      Key::Up => self.depth += 1,
-      Key::Down => self.depth -= 1,
-      Key::Left => self.density -= 0.1,
-      Key::Right => self.density += 0.1,
+      Key::Equals => self.depth += 1,
+      Key::Minus => self.depth -= 1,
+      Key::Up => self.weight += 1.0,
+      Key::Down => self.weight -= 1.0,
+      Key::Left => self.density -= 0.05,
+      Key::Right => self.density += 0.05,
       _ => {}
     }
   }
   fn update(&mut self, _app: &App) {
-    update_static(self)
+    update_static(self);
+    self.elapsed_frames += 1;
   }
 }
 
@@ -86,9 +100,38 @@ impl StaticArtwork for Model {
         tile.rect.min() + (10.0, 10.0).into(),
         tile.rect.max() - (10.0, 10.0).into(),
       );
-      utils::texture::fill::fill_rectangle(adjusted_rect, self.density).for_each(|p| {
-        draw.ellipse().x_y(p.x, p.y).w_h(1.0, 1.0).color(SANDYBROWN);
-      });
+
+      vec![
+        (
+          adjusted_rect.min(),
+          (adjusted_rect.min().x, adjusted_rect.max().y).into(),
+        ),
+        (
+          (adjusted_rect.min().x, adjusted_rect.max().y).into(),
+          adjusted_rect.max(),
+        ),
+        (
+          adjusted_rect.max(),
+          (adjusted_rect.max().x, adjusted_rect.min().y).into(),
+        ),
+        (
+          (adjusted_rect.max().x, adjusted_rect.min().y).into(),
+          adjusted_rect.min(),
+        ),
+      ]
+      .into_iter()
+      .for_each(|(start, end)| {
+        utils::draw::line::pencil(
+          start,
+          end,
+          draw,
+          utils::draw::line::LineOptions {
+            weight: self.weight,
+            density: self.density,
+            color: Hsl::new(0.0, 0.0, 0.0),
+          },
+        )
+      })
     });
   }
 }

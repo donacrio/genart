@@ -23,8 +23,14 @@ path = "examples/vibrations/lines.rs"
 name = "spaces_coloured"
 path = "examples/spaces/coloured.rs"
 [[example]]
-name = "spaces_contours"
-path = "examples/spaces/contours.rs"
+name = "spaces_pencil"
+path = "examples/spaces/pencil.rs"
+[[example]]
+name = "spaces_japanese_brush"
+path = "examples/spaces/japanese_brush.rs"
+[[example]]
+name = "spaces_brush"
+path = "examples/spaces/brush.rs"
 
 # Tiles
 [[example]]
@@ -36,3 +42,20 @@ path = "examples/tiles/square/japanese_brush.rs"
 [[example]]
 name = "tiles_square_pencil"
 path = "examples/tiles/square/pencil.rs"
+[[example]]
+name = "tiles_square_brush"
+path = "examples/tiles/square/brush.rs"
+
+# Lines
+[[example]]
+name = "line_palette_stroke"
+path = "examples/line_palette/stroke.rs"
+[[example]]
+name = "line_palette_japanese_brush"
+path = "examples/line_palette/japanese_brush.rs"
+[[example]]
+name = "line_palette_pencil"
+path = "examples/line_palette/pencil.rs"
+[[example]]
+name = "line_palette_brush"
+path = "examples/line_palette/brush.rs"

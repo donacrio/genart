@@ -8,9 +8,8 @@ pub fn sample_straight(
   n_samples: usize,
 ) -> impl Iterator<Item = Coord<f32>> {
   let line = Line::new(start, end);
-  let step = line.dx() / n_samples as f32;
-  (0..n_samples)
-    .map(move |i| line.line_interpolate_point(i as f32 * step))
+  (0..=n_samples)
+    .map(move |i| line.line_interpolate_point(i as f32 / n_samples as f32))
     .filter(|point| point.is_some())
     .map(|point| point.unwrap().into())
 }

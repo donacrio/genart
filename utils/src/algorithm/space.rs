@@ -1,5 +1,5 @@
 use geo::Coord;
-use rand::Rng;
+use rand::{rngs::StdRng, Rng};
 use rand_distr::{Bernoulli, Distribution};
 use std::collections::VecDeque;
 
@@ -15,14 +15,25 @@ pub trait SpaceTile {
 
 pub type Space<T> = Graph<T>;
 
-pub fn compute_space<T: SpaceTile>(root: T, max_children: u32, min_size: f32) -> Space<T> {
+pub fn compute_space<T: SpaceTile>(
+  root: T,
+  max_children: u32,
+  min_size: f32,
+  rng: StdRng,
+) -> Space<T> {
   let mut space = Space::default();
   let root = Node::new(root);
-  split_bfs(&mut space, root, max_children, min_size);
+  split_bfs(&mut space, root, max_children, min_size, rng);
   space
 }
 
-fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u32, min_size: f32) {
+fn split_bfs<T: SpaceTile>(
+  space: &mut Space<T>,
+  root: Node<T>,
+  max_children: u32,
+  min_size: f32,
+  mut rng: StdRng,
+) {
   let parent_index = space.add_node(root);
 
   let mut queue = VecDeque::new();
@@ -40,7 +51,7 @@ fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u3
 
     // Only divide rectangle if it's not too small
     if tile.width() > min_size && tile.height() > min_size {
-      let (child_1, child_2) = divide(tile);
+      let (child_1, child_2) = divide(tile, &mut rng);
 
       let child_index_1 = space.add_node(Node::new(child_1));
       let child_index_2 = space.add_node(Node::new(child_2));
@@ -53,12 +64,12 @@ fn split_bfs<T: SpaceTile>(space: &mut Space<T>, root: Node<T>, max_children: u3
   }
 }
 
-fn divide<T: SpaceTile>(tile: &T) -> (T, T) {
-  let axis = Bernoulli::new(0.5).unwrap().sample(&mut rand::thread_rng());
+fn divide<T: SpaceTile>(tile: &T, rng: &mut StdRng) -> (T, T) {
+  let axis = Bernoulli::new(0.5).unwrap().sample(rng);
 
   match axis {
     true => {
-      let y = rand::thread_rng().gen_range(0.0..tile.height());
+      let y = rng.gen_range(0.0..tile.height());
       let min_1 = tile.min();
       let max_1 = (tile.max().x, tile.min().y + y).into();
       let min_2 = (tile.min().x, tile.min().y + y).into();
@@ -66,7 +77,7 @@ fn divide<T: SpaceTile>(tile: &T) -> (T, T) {
       (T::new(min_1, max_1), T::new(min_2, max_2))
     }
     false => {
-      let x = rand::thread_rng().gen_range(0.0..tile.width());
+      let x = rng.gen_range(0.0..tile.width());
       let min_1 = tile.min();
       let max_1 = (tile.min().x + x, tile.max().y).into();
       let min_2 = (tile.min().x + x, tile.min().y).into();
