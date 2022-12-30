@@ -18,10 +18,6 @@ pub trait NannouApp {
   fn update(&mut self, app: &App);
 }
 
-// pub trait AppUpdate<T> {
-//   fn update(model: &mut T, app: &App);
-// }
-
 pub struct NannouAppOptions {
   pub texture_size: [u32; 2],
   pub render_size: [u32; 2],

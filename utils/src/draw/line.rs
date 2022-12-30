@@ -1,4 +1,5 @@
-use geo::{Coord, EuclideanDistance, Line, LineInterpolatePoint};
+use crate::geometry::line::sample_wooble;
+use geo::{ConvexHull, Coord, EuclideanDistance, Line, LineInterpolatePoint, LineString};
 use nannou::{
   prelude::{Hsl, Hsla, Vec2, PI},
   Draw,
@@ -82,6 +83,24 @@ pub fn pencil(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOpti
             .color(options.color);
         })
     })
+}
+
+pub fn brush(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
+  let color = Hsla::new(
+    options.color.hue,
+    options.color.saturation,
+    options.color.lightness,
+    options.density.clamp(0.0, 1.0),
+  );
+  let n_samples = (options.weight * start.euclidean_distance(&end)) as usize / 50;
+  let std_dev = 0.5 * options.weight;
+  let line_string = sample_wooble(start, end, n_samples, std_dev).collect::<LineString<f32>>();
+  let polygon = line_string.convex_hull();
+  let points = polygon
+    .exterior()
+    .coords()
+    .map(|coord| (Vec2::new(coord.x, coord.y), color));
+  draw.polygon().points_colored(points);
 }
 
 fn sample_within_circle(center: &Coord<f32>, radius: f32) -> Coord<f32> {

@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 
-use geo::{EuclideanDistance, Rect};
+use geo::Rect;
 use nannou::{
   prelude::{Hsl, Key, WHITE},
   App,
 };
+use rand::{rngs::StdRng, SeedableRng};
 use sketches::tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
@@ -22,15 +23,19 @@ fn main() {
 struct Model {
   base_model: BaseModel,
   depth: u32,
+  weight: f32,
   density: f32,
+  elapsed_frames: u32,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
-      depth: 1,
+      depth: 0,
+      weight: 5.0,
       density: 0.75,
+      elapsed_frames: 0,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -46,19 +51,29 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    String::from("frame")
+    // format!(
+    //   "frame_{}_{}_{}_{}",
+    //   self.elapsed_frames,
+    //   self.get_base_model().seed,
+    //   self.weight,
+    //   self.density * 100.,
+    // )
+    format!("frame_{}", self.elapsed_frames,)
   }
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
-      Key::Up => self.depth += 1,
-      Key::Down => self.depth -= 1,
+      Key::Equals => self.depth += 1,
+      Key::Minus => self.depth -= 1,
+      Key::Up => self.weight += 1.0,
+      Key::Down => self.weight -= 1.0,
       Key::Left => self.density -= 0.05,
       Key::Right => self.density += 0.05,
       _ => {}
     }
   }
   fn update(&mut self, _app: &App) {
-    update_static(self)
+    update_static(self);
+    self.elapsed_frames += 1;
   }
 }
 
@@ -76,7 +91,8 @@ impl StaticArtwork for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE);
+    let rng = StdRng::seed_from_u64(self.base_model.seed);
+    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, rng);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
       let tile = space.get_node(*index).unwrap().content();
@@ -105,13 +121,12 @@ impl StaticArtwork for Model {
       ]
       .into_iter()
       .for_each(|(start, end)| {
-        let weight = 0.004 * start.euclidean_distance(&end) as f32;
-        utils::draw::line::pencil(
+        utils::draw::line::japanese_brush(
           start,
           end,
           draw,
           utils::draw::line::LineOptions {
-            weight,
+            weight: self.weight,
             density: self.density,
             color: Hsl::new(0.0, 0.0, 0.0),
           },
