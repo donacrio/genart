@@ -1,6 +1,6 @@
 use geo::{Coord, Rect};
 use nannou::{
-  prelude::{Key, BLUEVIOLET, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
 use utils::app::{
@@ -13,6 +13,7 @@ fn main() {
 
 struct Model {
   base_model: BaseModel,
+  weight: f32,
   density: f32,
 }
 
@@ -20,6 +21,7 @@ impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
+      weight: 1.0,
       density: 0.5,
     }
   }
@@ -38,8 +40,10 @@ impl NannouApp for Model {
 
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
-      Key::Up => self.density += 0.1,
-      Key::Down => self.density -= 0.1,
+      Key::Up => self.weight += 0.5,
+      Key::Down => self.weight -= 0.5,
+      Key::Left => self.density -= 0.01,
+      Key::Right => self.density += 0.01,
       _ => {}
     }
   }
@@ -57,16 +61,18 @@ impl StaticArtwork for Model {
 
     let w = w_w as f32 * 0.9;
     let h = w_h as f32 * 0.9;
-    let min: Coord<f32> = (-w / 2.0, -h / 2.0).into();
-    let max: Coord<f32> = (w / 2.0, h / 2.0).into();
-    let rect = Rect::new(min, max);
+    let min: Coord<f32> = (-w / 4.0, -h / 4.0).into();
+    let max: Coord<f32> = (w / 4.0, h / 4.0).into();
+    let rect = Rect::new(min, max).to_polygon();
 
-    utils::texture::fill::fill_rectangle(rect, self.density).for_each(|point| {
-      draw
-        .ellipse()
-        .x_y(point.x, point.y)
-        .w_h(1.0, 1.0)
-        .color(BLUEVIOLET);
-    });
+    utils::draw::filling::uniform(
+      rect,
+      draw,
+      utils::draw::filling::FillingOptions {
+        weight: self.weight,
+        density: self.density,
+        color: Hsl::new(0.0, 0.0, 0.0),
+      },
+    );
   }
 }

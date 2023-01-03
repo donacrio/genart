@@ -85,7 +85,7 @@ pub fn pencil(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOpti
     })
 }
 
-pub fn brush(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
+pub fn marker(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
   let color = Hsla::new(
     options.color.hue,
     options.color.saturation,

@@ -91,7 +91,7 @@ impl StaticArtwork for Model {
         ),
       };
       let weight = 0.01 * line_width as f32;
-      utils::draw::line::brush(
+      utils::draw::line::marker(
         start,
         end,
         draw,

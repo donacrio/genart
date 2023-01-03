@@ -72,7 +72,7 @@ impl StaticArtwork for Model {
         })
       })
       .for_each(|(start, end, weight, density)| {
-        utils::draw::line::brush(
+        utils::draw::line::marker(
           start,
           end,
           draw,

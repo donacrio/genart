@@ -35,9 +35,6 @@ path = "examples/draw/line/pencil.rs"
 [[example]]
 name = "draw_line_brush"
 path = "examples/draw/line/brush.rs"
-
-
-# Texture
 [[example]]
-name = "texture_fill_rectangle"
-path = "examples/texture/fill/rectangle.rs"
+name = "draw_filling_uniform"
+path = "examples/draw/filling/uniform.rs"
