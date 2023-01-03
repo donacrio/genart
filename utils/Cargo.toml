@@ -8,6 +8,7 @@ authors = ["Donatien Criaud <donatien.criaud@gmail.com>"]
 
 [dependencies]
 geo = "0.23.0"
+halton = "0.2.1"
 nannou = "0.18.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
@@ -38,3 +39,6 @@ path = "examples/draw/line/brush.rs"
 [[example]]
 name = "draw_filling_uniform"
 path = "examples/draw/filling/uniform.rs"
+[[example]]
+name = "draw_filling_halton_23"
+path = "examples/draw/filling/halton_23.rs"
