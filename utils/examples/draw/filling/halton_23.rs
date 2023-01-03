@@ -65,7 +65,7 @@ impl StaticArtwork for Model {
     let max: Coord<f32> = (w / 4.0, h / 4.0).into();
     let rect = Rect::new(min, max).to_polygon();
 
-    utils::draw::filling::uniform(
+    utils::draw::filling::halton_23(
       rect,
       draw,
       utils::draw::filling::FillingOptions {

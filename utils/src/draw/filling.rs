@@ -20,3 +20,13 @@ pub fn uniform(polygon: Polygon<f32>, draw: &Draw, options: FillingOptions) {
       .color(options.color);
   });
 }
+
+pub fn halton_23(polygon: Polygon<f32>, draw: &Draw, options: FillingOptions) {
+  filling::halton_23(polygon, options.density).for_each(|coord| {
+    draw
+      .ellipse()
+      .xy(Vec2::from(coord.x_y()))
+      .w_h(options.weight, options.weight)
+      .color(options.color);
+  });
+}
