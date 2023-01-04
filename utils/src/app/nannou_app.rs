@@ -191,7 +191,7 @@ fn exit<T: NannouApp>(app: &App, model: T) {
 
 fn key_pressed<T: NannouApp>(app: &App, model: &mut T, key: Key) {
   let base_model = model.get_base_model_mut();
-  if key == Key::S {
+  if key == Key::R {
     let seed = random();
     base_model.seed = seed;
   }
