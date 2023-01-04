@@ -76,7 +76,7 @@ impl StaticArtwork for Model {
         })
       })
       .for_each(|(polygon, weight, density)| {
-        utils::draw::filling::japanese_brush(
+        utils::draw::filling::brush(
           polygon,
           draw,
           DEGREES,

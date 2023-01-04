@@ -67,11 +67,12 @@ impl StaticArtwork for Model {
           let line = line.rotate_around_centroid(45.0);
           let weight = (i * 5) as f32;
           let density = j as f32 / N_DENSITY as f32;
+          println!("{density}");
           (line.start, line.end, weight, density)
         })
       })
       .for_each(|(start, end, weight, density)| {
-        utils::draw::line::japanese_brush(
+        utils::draw::line::marker(
           start,
           end,
           draw,

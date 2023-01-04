@@ -49,9 +49,9 @@ pub fn stroke(polygon: Polygon<f32>, draw: &Draw, degrees: f32, options: Filling
   })
 }
 
-pub fn japanese_brush(polygon: Polygon<f32>, draw: &Draw, degrees: f32, options: FillingOptions) {
+pub fn brush(polygon: Polygon<f32>, draw: &Draw, degrees: f32, options: FillingOptions) {
   prepare_brush(polygon, degrees, &options).for_each(|(start, end)| {
-    draw::line::japanese_brush(
+    draw::line::brush(
       start,
       end,
       draw,

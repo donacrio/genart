@@ -28,8 +28,8 @@ path = "examples/geometry/line/wooble.rs"
 name = "draw_line_stroke"
 path = "examples/draw/line/stroke.rs"
 [[example]]
-name = "draw_line_japanese_brush"
-path = "examples/draw/line/japanese_brush.rs"
+name = "draw_line_marker"
+path = "examples/draw/line/marker.rs"
 [[example]]
 name = "draw_line_pencil"
 path = "examples/draw/line/pencil.rs"
@@ -46,8 +46,8 @@ path = "examples/draw/filling/halton_23.rs"
 name = "draw_filling_stroke"
 path = "examples/draw/filling/stroke.rs"
 [[example]]
-name = "draw_filling_japanese_brush"
-path = "examples/draw/filling/japanese_brush.rs"
+name = "draw_filling_brush"
+path = "examples/draw/filling/brush.rs"
 [[example]]
 name = "draw_filling_pencil"
 path = "examples/draw/filling/pencil.rs"

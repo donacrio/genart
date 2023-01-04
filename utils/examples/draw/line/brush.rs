@@ -69,7 +69,7 @@ impl StaticArtwork for Model {
         (start, end)
       })
       .for_each(|(start, end)| {
-        utils::draw::line::marker(
+        utils::draw::line::brush(
           start,
           end,
           draw,

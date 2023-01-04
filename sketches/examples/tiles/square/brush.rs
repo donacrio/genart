@@ -90,8 +90,8 @@ impl StaticArtwork for Model {
           (tile.max().x, tile.min().y).into(),
         ),
       };
-      let weight = 0.01 * line_width as f32;
-      utils::draw::line::marker(
+      let weight = 0.004 * line_width as f32;
+      utils::draw::line::brush(
         start,
         end,
         draw,

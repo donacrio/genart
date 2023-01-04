@@ -77,7 +77,7 @@ impl StaticArtwork for Model {
       vec![],
     );
 
-    utils::draw::filling::japanese_brush(
+    utils::draw::filling::brush(
       polygon,
       draw,
       self.degrees,

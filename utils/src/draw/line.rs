@@ -29,7 +29,7 @@ pub fn stroke(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOpti
     .color(color);
 }
 
-pub fn japanese_brush(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
+pub fn brush(start: Coord<f32>, end: Coord<f32>, draw: &Draw, options: LineOptions) {
   const N_LINES: u32 = 50;
   let stroke_weight = 10. * options.weight / N_LINES as f32;
   let color = Hsla::new(

@@ -26,8 +26,8 @@ path = "examples/spaces/coloured.rs"
 name = "spaces_pencil"
 path = "examples/spaces/pencil.rs"
 [[example]]
-name = "spaces_japanese_brush"
-path = "examples/spaces/japanese_brush.rs"
+name = "spaces_marker"
+path = "examples/spaces/marker.rs"
 [[example]]
 name = "spaces_brush"
 path = "examples/spaces/brush.rs"
@@ -37,8 +37,8 @@ path = "examples/spaces/brush.rs"
 name = "tiles_square_stroke"
 path = "examples/tiles/square/stroke.rs"
 [[example]]
-name = "tiles_square_japanese_brush"
-path = "examples/tiles/square/japanese_brush.rs"
+name = "tiles_square_marker"
+path = "examples/tiles/square/marker.rs"
 [[example]]
 name = "tiles_square_pencil"
 path = "examples/tiles/square/pencil.rs"
@@ -51,8 +51,8 @@ path = "examples/tiles/square/brush.rs"
 name = "line_palette_stroke"
 path = "examples/line_palette/stroke.rs"
 [[example]]
-name = "line_palette_japanese_brush"
-path = "examples/line_palette/japanese_brush.rs"
+name = "line_palette_marker"
+path = "examples/line_palette/marker.rs"
 [[example]]
 name = "line_palette_pencil"
 path = "examples/line_palette/pencil.rs"
@@ -74,8 +74,8 @@ path = "examples/filling_palette/stroke.rs"
 name = "filling_palette_marker"
 path = "examples/filling_palette/marker.rs"
 [[example]]
-name = "filling_palette_japanese_brush"
-path = "examples/filling_palette/japanese_brush.rs"
+name = "filling_palette_brush"
+path = "examples/filling_palette/brush.rs"
 [[example]]
 name = "filling_palette_pencil"
 path = "examples/filling_palette/pencil.rs"

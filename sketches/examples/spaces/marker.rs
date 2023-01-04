@@ -51,13 +51,6 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    // format!(
-    //   "frame_{}_{}_{}_{}",
-    //   self.elapsed_frames,
-    //   self.get_base_model().seed,
-    //   self.weight,
-    //   self.density * 100.,
-    // )
     format!("frame_{}", self.elapsed_frames,)
   }
   fn key_pressed(&mut self, _app: &App, key: Key) {
@@ -121,7 +114,7 @@ impl StaticArtwork for Model {
       ]
       .into_iter()
       .for_each(|(start, end)| {
-        utils::draw::line::japanese_brush(
+        utils::draw::line::marker(
           start,
           end,
           draw,
