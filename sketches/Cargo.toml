@@ -59,3 +59,23 @@ path = "examples/line_palette/pencil.rs"
 [[example]]
 name = "line_palette_brush"
 path = "examples/line_palette/brush.rs"
+
+# Fillings
+[[example]]
+name = "filling_palette_uniform"
+path = "examples/filling_palette/uniform.rs"
+[[example]]
+name = "filling_palette_halton_23"
+path = "examples/filling_palette/halton_23.rs"
+[[example]]
+name = "filling_palette_stroke"
+path = "examples/filling_palette/stroke.rs"
+[[example]]
+name = "filling_palette_marker"
+path = "examples/filling_palette/marker.rs"
+[[example]]
+name = "filling_palette_japanese_brush"
+path = "examples/filling_palette/japanese_brush.rs"
+[[example]]
+name = "filling_palette_pencil"
+path = "examples/filling_palette/pencil.rs"

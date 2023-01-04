@@ -65,7 +65,7 @@ impl StaticArtwork for Model {
       LineString::from(vec![
         (-w / 4.0, -h / 4.0),
         (-w / 3.0, h / 3.0),
-        (-w / 2.5 / 3.0, 0.0),
+        (-w / 7.5, 0.0),
         (w / 3.0, h / 3.0),
         (w / 4.0, -h / 4.0),
         (w / 5.0, -h / 3.0),
