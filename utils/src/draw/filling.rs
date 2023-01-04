@@ -1,5 +1,8 @@
 use crate::{draw, geometry};
-use geo::{line_intersection::line_intersection, BoundingRect, Line, LinesIter, Point, Polygon};
+use geo::{
+  line_intersection::line_intersection, BoundingRect, Coord, Line, LinesIter, Point, Polygon, Rect,
+  Rotate,
+};
 use nannou::{
   prelude::{Hsl, Vec2},
   Draw,
@@ -31,15 +34,21 @@ pub fn halton_23(polygon: Polygon<f32>, draw: &Draw, options: FillingOptions) {
   });
 }
 
-pub fn japanese_brush(polygon: Polygon<f32>, draw: &Draw, options: FillingOptions) {
+pub fn japanese_brush(polygon: Polygon<f32>, draw: &Draw, degrees: f32, options: FillingOptions) {
+  // TODO: handle degrees = 0.0
+  // Compute rectangle bounding the polygon for any rotation
   let bounding_rect = polygon.bounding_rect().unwrap();
+  let diagonal = (bounding_rect.width().powi(2) * bounding_rect.height().powi(2)).sqrt();
+  let max = bounding_rect.center() - Coord::from((diagonal, diagonal)) / 2.0;
+  let min = bounding_rect.center() + Coord::from((diagonal, diagonal)) / 2.0;
+  let bounding_rect = Rect::new(min, max);
   let n_lines = (bounding_rect.height() / options.weight) as usize;
   (0..n_lines)
     .map(|i| {
       let height = (i as f32 / n_lines as f32 - 0.5) * bounding_rect.height();
       let start: Point<f32> = (bounding_rect.min().x, height).into();
       let end: Point<f32> = (bounding_rect.max().x, height).into();
-      let line = Line::new(start, end);
+      let line = Line::new(start, end).rotate_around_centroid(degrees);
       let direction = line.dx();
       let mut intersections = polygon
         .lines_iter()

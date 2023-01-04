@@ -15,6 +15,7 @@ struct Model {
   base_model: BaseModel,
   weight: f32,
   density: f32,
+  degrees: f32,
 }
 
 impl NannouApp for Model {
@@ -23,6 +24,7 @@ impl NannouApp for Model {
       base_model,
       weight: 10.0,
       density: 0.1,
+      degrees: 0.0,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -44,6 +46,8 @@ impl NannouApp for Model {
       Key::Down => self.weight -= 0.5,
       Key::Left => self.density -= 0.01,
       Key::Right => self.density += 0.01,
+      Key::Equals => self.degrees += 10.0,
+      Key::Minus => self.degrees -= 10.0,
       _ => {}
     }
   }
@@ -76,6 +80,7 @@ impl StaticArtwork for Model {
     utils::draw::filling::japanese_brush(
       polygon,
       draw,
+      self.degrees,
       utils::draw::filling::FillingOptions {
         weight: self.weight,
         density: self.density,
