@@ -42,3 +42,15 @@ path = "examples/draw/filling/uniform.rs"
 [[example]]
 name = "draw_filling_halton_23"
 path = "examples/draw/filling/halton_23.rs"
+[[example]]
+name = "draw_filling_stroke"
+path = "examples/draw/filling/stroke.rs"
+[[example]]
+name = "draw_filling_japanese_brush"
+path = "examples/draw/filling/japanese_brush.rs"
+[[example]]
+name = "draw_filling_pencil"
+path = "examples/draw/filling/pencil.rs"
+[[example]]
+name = "draw_filling_marker"
+path = "examples/draw/filling/marker.rs"

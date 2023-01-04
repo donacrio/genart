@@ -15,14 +15,16 @@ struct Model {
   base_model: BaseModel,
   weight: f32,
   density: f32,
+  degrees: f32,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
-      weight: 1.0,
+      weight: 10.0,
       density: 0.1,
+      degrees: 0.0,
     }
   }
   fn get_options() -> NannouAppOptions {
@@ -44,6 +46,8 @@ impl NannouApp for Model {
       Key::Down => self.weight -= 0.5,
       Key::Left => self.density -= 0.01,
       Key::Right => self.density += 0.01,
+      Key::Equals => self.degrees += 10.0,
+      Key::Minus => self.degrees -= 10.0,
       _ => {}
     }
   }
@@ -73,9 +77,10 @@ impl StaticArtwork for Model {
       vec![],
     );
 
-    utils::draw::filling::uniform(
+    utils::draw::filling::stroke(
       polygon,
       draw,
+      self.degrees,
       utils::draw::filling::FillingOptions {
         weight: self.weight,
         density: self.density,
