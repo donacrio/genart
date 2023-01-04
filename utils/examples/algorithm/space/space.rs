@@ -95,8 +95,8 @@ impl StaticArtwork for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let rng = StdRng::seed_from_u64(self.base_model.seed);
-    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, rng);
+    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
+    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, &mut rng);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
       let tile = space.get_node(*index).unwrap().content();

@@ -5,7 +5,7 @@ use nannou::{
   prelude::{Hsl, Key, WHITE},
   App,
 };
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 use sketches::tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
@@ -15,7 +15,18 @@ use utils::{
   draw::filling::FillingOptions,
 };
 
-const MIN_SIZE: f32 = 100.0;
+const MIN_SIZE: f32 = 50.0;
+const COLOR_PALETTE: [[f32; 3]; 5] = [
+  [201.0, 1.0, 0.14],
+  [0.0, 0.69, 0.5],
+  [31.0, 1.0, 0.48],
+  [40.0, 0.97, 0.64],
+  [51.0, 0.55, 0.82],
+];
+
+fn hsl_from_palette(color: [f32; 3]) -> Hsl {
+  Hsl::new(color[0], color[1], color[2])
+}
 
 fn main() {
   make_static_artwork::<Model>().run();
@@ -34,8 +45,8 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 0,
-      weight: 1.0,
-      density: 0.5,
+      weight: 4.0,
+      density: 0.07,
       elapsed_frames: 0,
     }
   }
@@ -52,7 +63,7 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    format!("frame_{}", self.elapsed_frames,)
+    format!("frame_{}", self.elapsed_frames)
   }
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
@@ -60,8 +71,8 @@ impl NannouApp for Model {
       Key::Minus => self.depth -= 1,
       Key::Up => self.weight += 1.0,
       Key::Down => self.weight -= 1.0,
-      Key::Left => self.density -= 0.05,
-      Key::Right => self.density += 0.05,
+      Key::Left => self.density -= 0.001,
+      Key::Right => self.density += 0.001,
       _ => {}
     }
   }
@@ -85,8 +96,8 @@ impl StaticArtwork for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let rng = StdRng::seed_from_u64(self.base_model.seed);
-    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, rng);
+    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
+    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, &mut rng);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
       let tile = space.get_node(*index).unwrap().content();
@@ -94,13 +105,15 @@ impl StaticArtwork for Model {
         tile.rect.min() + (10.0, 10.0).into(),
         tile.rect.max() - (10.0, 10.0).into(),
       );
-      utils::draw::filling::uniform(
+      let index = rng.gen_range(0..COLOR_PALETTE.len());
+      let color = hsl_from_palette(COLOR_PALETTE[index]);
+      utils::draw::filling::halton_23(
         adjusted_rect.to_polygon(),
         draw,
         FillingOptions {
           weight: self.weight,
           density: self.density,
-          color: Hsl::new(28.0, 0.87, 0.67),
+          color,
         },
       )
     });

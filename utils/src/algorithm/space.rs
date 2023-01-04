@@ -19,7 +19,7 @@ pub fn compute_space<T: SpaceTile>(
   root: T,
   max_children: u32,
   min_size: f32,
-  rng: StdRng,
+  rng: &mut StdRng,
 ) -> Space<T> {
   let mut space = Space::default();
   let root = Node::new(root);
@@ -32,7 +32,7 @@ fn split_bfs<T: SpaceTile>(
   root: Node<T>,
   max_children: u32,
   min_size: f32,
-  mut rng: StdRng,
+  rng: &mut StdRng,
 ) {
   let parent_index = space.add_node(root);
 
@@ -51,7 +51,7 @@ fn split_bfs<T: SpaceTile>(
 
     // Only divide rectangle if it's not too small
     if tile.width() > min_size && tile.height() > min_size {
-      let (child_1, child_2) = divide(tile, &mut rng);
+      let (child_1, child_2) = divide(tile, rng);
 
       let child_index_1 = space.add_node(Node::new(child_1));
       let child_index_2 = space.add_node(Node::new(child_2));
