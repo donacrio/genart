@@ -29,6 +29,13 @@ repos:
         entry: cargo clippy --workspace --verbose -- -D warnings
         pass_filenames: false
 
+      - id: cargo-clippy-examples
+        name: Run cargo clippy examples
+        language: system
+        types: [file, rust]
+        entry: cargo clippy --examples --workspace --verbose -- -D warnings
+        pass_filenames: false
+
       - id: cargo-test
         name: Run cargo test
         language: system

@@ -21,7 +21,7 @@ impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
-      weight: 1.0,
+      weight: 10.0,
       density: 0.1,
     }
   }
@@ -73,7 +73,7 @@ impl StaticArtwork for Model {
       vec![],
     );
 
-    utils::draw::filling::uniform(
+    utils::draw::filling::japanese_brush(
       polygon,
       draw,
       utils::draw::filling::FillingOptions {

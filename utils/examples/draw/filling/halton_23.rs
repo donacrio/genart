@@ -1,4 +1,4 @@
-use geo::{Coord, Rect};
+use geo::{LineString, Polygon};
 use nannou::{
   prelude::{Hsl, Key, WHITE},
   App,
@@ -61,12 +61,20 @@ impl StaticArtwork for Model {
 
     let w = w_w as f32 * 0.9;
     let h = w_h as f32 * 0.9;
-    let min: Coord<f32> = (-w / 4.0, -h / 4.0).into();
-    let max: Coord<f32> = (w / 4.0, h / 4.0).into();
-    let rect = Rect::new(min, max).to_polygon();
+    let polygon = Polygon::new(
+      LineString::from(vec![
+        (-w / 4.0, -h / 4.0),
+        (-w / 3.0, h / 3.0),
+        (-w / 2.5 / 3.0, 0.0),
+        (w / 3.0, h / 3.0),
+        (w / 4.0, -h / 4.0),
+        (w / 5.0, -h / 3.0),
+      ]),
+      vec![],
+    );
 
     utils::draw::filling::halton_23(
-      rect,
+      polygon,
       draw,
       utils::draw::filling::FillingOptions {
         weight: self.weight,
