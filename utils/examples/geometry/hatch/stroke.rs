@@ -1,31 +1,18 @@
-use geo::{LinesIter, Rect};
+use geo::{Coord, LinesIter, Rect};
 use nannou::{
   prelude::{Hsl, Key, BLACK, WHITE},
   App,
 };
-use rand::{rngs::StdRng, Rng, SeedableRng};
-use sketches::tile::Tile;
-use std::path::PathBuf;
+use rand::{rngs::StdRng, SeedableRng};
 use utils::{
   algorithm::space::SpaceTile,
   app::{
     make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
   },
-  draw::{filling::FillingOptions, line::LineOptions},
+  draw::line::LineOptions,
 };
 
 const MIN_SIZE: f32 = 50.0;
-const COLOR_PALETTE: [[f32; 3]; 5] = [
-  [201.0, 1.0, 0.14],
-  [0.0, 0.69, 0.5],
-  [31.0, 1.0, 0.48],
-  [40.0, 0.97, 0.64],
-  [51.0, 0.55, 0.82],
-];
-
-fn hsl_from_palette(color: [f32; 3]) -> Hsl {
-  Hsl::new(color[0], color[1], color[2])
-}
 
 fn main() {
   make_static_artwork::<Model>().run();
@@ -38,6 +25,8 @@ struct Model {
   line_density: f32,
   filling_weight: f32,
   filling_density: f32,
+  hatches_density: f32,
+  hatches_degrees: f32,
   elapsed_frames: u32,
 }
 
@@ -46,16 +35,18 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 0,
-      line_weight: 10.0,
-      line_density: 0.25,
-      filling_weight: 3.0,
-      filling_density: 0.06,
+      line_weight: 5.0,
+      line_density: 1.0,
+      filling_weight: 5.0,
+      filling_density: 1.0,
+      hatches_density: 0.1,
+      hatches_degrees: 60.0,
       elapsed_frames: 0,
     }
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions {
-      background_path: Some(PathBuf::from("paper.jpg")),
+      render_size: [1080, 1080],
       ..NannouAppOptions::default()
     }
   }
@@ -80,6 +71,10 @@ impl NannouApp for Model {
       Key::S => self.line_weight -= 1.0,
       Key::A => self.line_density -= 0.05,
       Key::D => self.line_density += 0.05,
+      Key::I => self.hatches_density += 0.01,
+      Key::K => self.hatches_density -= 0.01,
+      Key::J => self.hatches_degrees -= 5.0,
+      Key::L => self.hatches_degrees += 5.0,
       _ => {}
     }
   }
@@ -103,7 +98,8 @@ impl StaticArtwork for Model {
     let root = Tile::new(min, max);
 
     let max_children = 2u32.pow(self.depth);
-    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
+    // let mut rng = StdRng::seed_from_u64(self.base_model.seed);
+    let mut rng = StdRng::seed_from_u64(6236303788390788535);
     let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, &mut rng);
     let leafs = space.leafs();
     leafs.iter().for_each(|index| {
@@ -112,20 +108,9 @@ impl StaticArtwork for Model {
         tile.rect.min() + (10.0, 10.0).into(),
         tile.rect.max() - (10.0, 10.0).into(),
       );
-      let index = rng.gen_range(0..COLOR_PALETTE.len());
-      let color = hsl_from_palette(COLOR_PALETTE[index]);
-      utils::draw::filling::brush(
-        adjusted_rect.to_polygon(),
-        draw,
-        60.0,
-        FillingOptions {
-          weight: self.filling_weight,
-          density: self.filling_density,
-          color,
-        },
-      );
+
       adjusted_rect.lines_iter().for_each(|line| {
-        utils::draw::line::brush(
+        utils::draw::line::stroke(
           line.start,
           line.end,
           draw,
@@ -136,6 +121,52 @@ impl StaticArtwork for Model {
           },
         )
       });
+      utils::geometry::hatch::hatch(
+        adjusted_rect.to_polygon(),
+        self.hatches_density,
+        self.hatches_degrees,
+      )
+      .for_each(|(start, end)| {
+        utils::draw::line::stroke(
+          start,
+          end,
+          draw,
+          LineOptions {
+            weight: self.line_weight,
+            density: self.line_density,
+            color: Hsl::from(BLACK.into_format()),
+          },
+        )
+      });
     });
+  }
+}
+
+// Utilities for examples at examples/spaces
+pub struct Tile {
+  pub rect: Rect<f32>,
+}
+
+impl SpaceTile for Tile {
+  fn new(min: Coord<f32>, max: Coord<f32>) -> Self {
+    Tile {
+      rect: Rect::new(min, max),
+    }
+  }
+
+  fn width(&self) -> f32 {
+    self.rect.width()
+  }
+
+  fn height(&self) -> f32 {
+    self.rect.height()
+  }
+
+  fn min(&self) -> Coord<f32> {
+    self.rect.min()
+  }
+
+  fn max(&self) -> Coord<f32> {
+    self.rect.max()
   }
 }

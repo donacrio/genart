@@ -20,6 +20,9 @@ path = "examples/algorithm/space/space.rs"
 
 # Geometry
 [[example]]
+name = "geometry_hatch_stroke"
+path = "examples/geometry/hatch/stroke.rs"
+[[example]]
 name = "geometry_line_wooble"
 path = "examples/geometry/line/wooble.rs"
 

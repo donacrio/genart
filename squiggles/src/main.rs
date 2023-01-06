@@ -1,18 +1,20 @@
 mod tile;
 
-use geo::{LinesIter, Rect};
+use geo::{Coord, LinesIter, Rect};
 use nannou::{
-  prelude::{Hsl, Key, BLACK, WHITE},
+  prelude::{Hsl, Key, WHITE},
   App,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand_distr::{Distribution, Normal, Standard};
 use tile::Tile;
 use utils::{
-  algorithm::space::SpaceTile,
+  algorithm::space::{Space, SpaceTile},
   app::{
     make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
   },
-  draw::{filling::FillingOptions, line::LineOptions},
+  draw::line::LineOptions,
+  geometry::hatch::hatch,
 };
 
 const MIN_SIZE: f32 = 50.0;
@@ -39,6 +41,8 @@ struct Model {
   line_density: f32,
   filling_weight: f32,
   filling_density: f32,
+  hatches_density: f32,
+  hatches_degrees: f32,
   elapsed_frames: u32,
 }
 
@@ -47,10 +51,12 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 0,
-      line_weight: 10.0,
-      line_density: 0.25,
-      filling_weight: 3.0,
-      filling_density: 0.06,
+      line_weight: 5.0,
+      line_density: 10.0,
+      filling_weight: 5.0,
+      filling_density: 1.0,
+      hatches_density: 0.5,
+      hatches_degrees: 60.0,
       elapsed_frames: 0,
     }
   }
@@ -81,6 +87,10 @@ impl NannouApp for Model {
       Key::S => self.line_weight -= 1.0,
       Key::A => self.line_density -= 0.05,
       Key::D => self.line_density += 0.05,
+      Key::I => self.hatches_density += 0.05,
+      Key::K => self.hatches_density -= 0.05,
+      Key::J => self.hatches_degrees -= 5.0,
+      Key::L => self.hatches_degrees += 5.0,
       _ => {}
     }
   }
@@ -115,41 +125,116 @@ impl StaticArtwork for Model {
       );
       let index = rng.gen_range(0..COLOR_PALETTE.len());
       let color = hsl_from_palette(COLOR_PALETTE[index]);
-      utils::draw::filling::halton_23(
-        adjusted_rect.to_polygon(),
-        draw,
-        FillingOptions {
-          weight: self.filling_weight,
-          density: self.filling_density,
-          color,
-        },
-      );
+
       adjusted_rect.lines_iter().for_each(|line| {
-        utils::draw::line::brush(
+        utils::draw::line::stroke(
           line.start,
           line.end,
           draw,
           LineOptions {
             weight: self.line_weight,
             density: self.line_density,
-            color: Hsl::from(BLACK.into_format()),
+            color,
           },
         )
       });
-      utils::geometry::hatches::hatch(adjusted_rect.to_polygon(), 100, 60.0).for_each(
-        |(start, end)| {
-          utils::draw::line::brush(
-            start,
-            end,
-            draw,
-            LineOptions {
-              weight: self.line_weight,
-              density: self.line_density,
-              color: Hsl::from(BLACK.into_format()),
-            },
-          )
-        },
-      );
+      utils::geometry::hatch::hatch(
+        adjusted_rect.to_polygon(),
+        self.hatches_density,
+        self.hatches_degrees,
+      )
+      .for_each(|(start, end)| {
+        utils::draw::line::stroke(
+          start,
+          end,
+          draw,
+          LineOptions {
+            weight: self.line_weight,
+            density: self.line_density,
+            color,
+          },
+        )
+      });
     });
+  }
+}
+
+// const PADDING: f32 = 50.0;
+const HATCH_WEIGHT_MEAN: f32 = 40.0;
+const HATCH_WEIGHT_STD: f32 = 10.0;
+// const MAX_BREAKPOINTS_MEAN: f32 = 50.0;
+// const MAX_BREAKPOINTS_VARIANCE: f32 = 10.0;
+// const BREAK_PROPORTION_MEAN: f64 = 0.8;
+// const BREAK_PROPORTION_VARIANCE: f64 = 0.05;
+
+enum HatchRotation {
+  NegFracPi8,
+  NegFracPi4,
+  NegFrac3Pi8,
+  Frac3Pi8,
+  FracPi4,
+  FracPi8,
+}
+
+pub fn squiggle(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f32>, Coord<f32>)> {
+  //   let max_breakpoints_law = Normal::new(MAX_BREAKPOINTS_MEAN, MAX_BREAKPOINTS_VARIANCE).unwrap();
+  //   let break_proportion_law = Normal::new(BREAK_PROPORTION_MEAN, BREAK_PROPORTION_VARIANCE).unwrap();
+  create_hatches(space, rng)
+  // .iter()
+  // .map(|hatches| {
+  //   let max_breakpoint = max_breakpoints_law.sample(&mut rand::thread_rng()) as usize;
+  //   let break_proportion = break_proportion_law.sample(&mut rand::thread_rng());
+  //   hatches.iter().map(move |hatch| {
+  //     BrokenLineBuilder::new(&hatch)
+  //       .max_breakpoints(max_breakpoint)
+  //       .break_proportion(break_proportion)
+  //       .build()
+  //       .segments
+  //   })
+  // })
+  // .flatten()
+  // .flatten()
+  // .collect()
+}
+
+fn create_hatches(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f32>, Coord<f32>)> {
+  space
+    .leafs()
+    .iter()
+    .map(|index| space.get_node(*index).unwrap().content())
+    .flat_map(|rectangle| {
+      // IDEA: increment & rotation depending on rectangle size
+      let hatch_weight = Normal::new(HATCH_WEIGHT_MEAN, HATCH_WEIGHT_STD)
+        .unwrap()
+        .sample(rng);
+      let hatch_degrees = rand::random::<HatchRotation>().value();
+      hatch(rectangle.to_polygon(), hatch_weight, hatch_degrees)
+    })
+    .collect()
+}
+
+impl HatchRotation {
+  fn value(&self) -> f32 {
+    match self {
+      Self::NegFracPi8 => -std::f32::consts::FRAC_PI_8,
+      Self::NegFracPi4 => -std::f32::consts::FRAC_PI_4,
+      Self::NegFrac3Pi8 => -(std::f32::consts::FRAC_PI_8 + std::f32::consts::FRAC_PI_4),
+      Self::Frac3Pi8 => std::f32::consts::FRAC_PI_8 + std::f32::consts::FRAC_PI_4,
+      Self::FracPi4 => std::f32::consts::FRAC_PI_4,
+      Self::FracPi8 => std::f32::consts::FRAC_PI_8,
+    }
+  }
+}
+
+impl Distribution<HatchRotation> for Standard {
+  fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> HatchRotation {
+    match rng.gen_range(0..=5) {
+      0 => HatchRotation::NegFracPi8,
+      1 => HatchRotation::NegFracPi4,
+      2 => HatchRotation::NegFrac3Pi8,
+      3 => HatchRotation::Frac3Pi8,
+      4 => HatchRotation::FracPi4,
+      _ => HatchRotation::FracPi8,
+    }
   }
 }

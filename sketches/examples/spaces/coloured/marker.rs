@@ -5,6 +5,7 @@ use nannou::{
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use sketches::tile::Tile;
+use std::path::PathBuf;
 use utils::{
   algorithm::space::SpaceTile,
   app::{
@@ -54,7 +55,7 @@ impl NannouApp for Model {
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions {
-      render_size: [1080, 1080],
+      background_path: Some(PathBuf::from("paper.jpg")),
       ..NannouAppOptions::default()
     }
   }

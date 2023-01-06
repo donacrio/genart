@@ -5,8 +5,8 @@ use rand::{rngs::StdRng, Rng};
 use rand_distr::{Distribution, Normal, Standard};
 
 // const PADDING: f32 = 50.0;
-const N_HATCH_MEAN: f32 = 40.0;
-const N_HATCH_STD: f32 = 10.0;
+const HATCH_DENSITY_MEAN: f32 = 40.0;
+const HATCH_DENSITY_STD: f32 = 10.0;
 // const MAX_BREAKPOINTS_MEAN: f32 = 50.0;
 // const MAX_BREAKPOINTS_VARIANCE: f32 = 10.0;
 // const BREAK_PROPORTION_MEAN: f64 = 0.8;
@@ -49,9 +49,11 @@ fn create_hatches(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<
     .map(|index| space.get_node(*index).unwrap().content())
     .flat_map(|rectangle| {
       // IDEA: increment & rotation depending on rectangle size
-      let n_lines = Normal::new(N_HATCH_MEAN, N_HATCH_STD).unwrap().sample(rng) as usize;
+      let hatch_density = Normal::new(HATCH_DENSITY_MEAN, HATCH_DENSITY_STD)
+        .unwrap()
+        .sample(rng);
       let hatch_degrees = rand::random::<HatchRotation>().value();
-      geometry::hatches::hatch(rectangle.to_polygon(), n_lines, hatch_degrees)
+      geometry::hatch::hatch(rectangle.to_polygon(), hatch_density, hatch_degrees)
     })
     .collect()
 }
