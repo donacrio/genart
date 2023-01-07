@@ -1,5 +1,5 @@
 [workspace]
-members = ["sketches", "utils"]
+members = ["sketches", "permutations", "utils"]
 resolver = "2"
 
 [profile.dev]
