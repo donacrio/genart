@@ -1,35 +1,51 @@
+use std::{collections::VecDeque, f32::consts::FRAC_PI_2};
+
 use geo::{coord, Coord, LineInterpolatePoint, LineString, Rect};
 use nannou::{
-  prelude::{map_range, Key, Vec2, Vec2Rotate, BLACK, PI, WHITE},
+  prelude::{Hsl, Hsla, Key, Vec2, Vec2Rotate, PI},
   App,
 };
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
-use std::{collections::VecDeque, f32::consts::FRAC_PI_2};
 use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
+  make_dynamic_artwork, update_dynamic, BaseModel, DynamicArtwork, NannouApp, NannouAppOptions,
 };
 
-const N_STEPS: usize = 5000;
+const FPS: u32 = 60;
+const N_SEC: u32 = 30;
 
-const N_MAIN_OBITS: usize = 15;
+const N_MAIN_OBITS: usize = 50;
 const N_CHILDREN_OBITS: usize = 7;
 const CHILDREN_RADIUS_FACTOR: f32 = 1.0;
-const POINT_SIZE: f32 = 4.0;
+const MAX_POINTS: usize = 10;
+const POINT_SIZE: f32 = 5.0;
+const ALPHA_FACTOR: f32 = 0.75;
 const SEED: Option<u64> = None;
 
 fn main() {
-  make_static_artwork::<Model>().run();
+  make_dynamic_artwork::<Model>().run();
 }
 
 type Transposition = (usize, usize);
 
 struct Model {
   base_model: BaseModel,
+  current_frame: u32,
+  main_permutation_path: Vec<LineString<f32>>,
+  permutations_paths: Vec<Vec<LineString<f32>>>,
+  permutations_points: Vec<Vec<VecDeque<Vec2>>>,
 }
 
 impl NannouApp for Model {
   fn new(base_model: BaseModel) -> Self {
-    Self { base_model }
+    let mut model = Self {
+      base_model,
+      current_frame: 0,
+      main_permutation_path: vec![],
+      permutations_paths: vec![],
+      permutations_points: vec![],
+    };
+    model.compute_paths();
+    model
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions::default()
@@ -41,20 +57,89 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    format!("frame_{}", self.base_model.seed)
+    format!("frame_{}", self.current_frame)
   }
   fn key_pressed(&mut self, _app: &App, _key: Key) {}
   fn update(&mut self, _app: &App) {
-    update_static(self)
+    update_dynamic(self)
   }
 }
 
-impl StaticArtwork for Model {
-  fn draw(&self) {
+impl DynamicArtwork for Model {
+  fn fps(&self) -> u32 {
+    FPS
+  }
+  fn n_sec(&self) -> u32 {
+    N_SEC
+  }
+  fn current_frame(&mut self) -> &mut u32 {
+    &mut self.current_frame
+  }
+  fn draw_at_time(&mut self, t: f64) {
     let draw = &self.base_model.draw;
 
-    draw.background().color(WHITE);
+    let background_color = Hsl::new(40.0, 0.35, 0.93); // PAPER: hsl(40,35%,93%)
+    draw.background().color(background_color);
 
+    // TODO: Compute new center for each permutation and rotate all points
+    self
+      .permutations_paths
+      .iter()
+      .enumerate()
+      .for_each(|(i, permutation_paths)| {
+        // Find the main path new center
+        let center = self
+          .main_permutation_path
+          .get(i)
+          .unwrap()
+          .line_interpolate_point(t as f32)
+          .unwrap();
+        let center = Vec2::from(center.x_y());
+        // Compute polar coordinates angle (between -pi/2 and pi/2)
+        let theta = (center.x / center.y).atan();
+        let theta = 2.0 * (theta + FRAC_PI_2);
+        permutation_paths.iter().enumerate().for_each(|(j, path)| {
+          if let Some(point) = path.line_interpolate_point(t as f32) {
+            // Update queue with the next point on the path
+            let point = Vec2::from(point.x_y());
+            let point = point.rotate(-theta) + center;
+            let queue = self
+              .permutations_points
+              .get_mut(i)
+              .unwrap()
+              .get_mut(j)
+              .unwrap();
+            if queue.len() == MAX_POINTS {
+              queue.pop_front();
+            }
+            queue.push_back(point);
+          }
+        })
+      });
+
+    self
+      .permutations_points
+      .iter()
+      .for_each(|permutation_points| {
+        permutation_points.iter().for_each(|points| {
+          points.iter().enumerate().for_each(|(i, point)| {
+            // Rotate the translate the new point
+            let alpha = i as f32 / (MAX_POINTS - 1) as f32;
+            let alpha = ALPHA_FACTOR * alpha.powi(2);
+            let color = Hsla::new(204.0, 0.188, 0.261, alpha); // charcoal hsl(204°, 18.8%, 26.1%)
+            draw
+              .ellipse()
+              .xy(*point)
+              .w_h(POINT_SIZE, POINT_SIZE)
+              .color(color);
+          })
+        })
+      })
+  }
+}
+
+impl Model {
+  fn compute_paths(&mut self) {
     let mut rng = StdRng::seed_from_u64(SEED.unwrap_or(self.base_model.seed));
 
     let [w_w, w_h] = self.base_model.texture.size();
@@ -69,19 +154,21 @@ impl StaticArtwork for Model {
     let mut vec: Vec<usize> = (0..N_MAIN_OBITS).collect();
     vec.shuffle(&mut rng);
     let main_permutation = compute_transpositions(vec);
-    let main_permutation_path = compute_paths(N_MAIN_OBITS, main_permutation, w / 2.0)
+    self.main_permutation_path = compute_paths(N_MAIN_OBITS, main_permutation, w / 2.0)
       .into_iter()
       .map(compute_linestring_from_path)
-      .collect::<Vec<_>>();
+      .collect();
 
-    let mut permutations_points = vec![];
-    let permutations_paths = (0..N_MAIN_OBITS)
+    self.permutations_paths = (0..N_MAIN_OBITS)
       .map(|_| {
         // Initialize the poits queues
-        permutations_points.push(vec![VecDeque::new(); N_CHILDREN_OBITS]);
+        self
+          .permutations_points
+          .push(vec![VecDeque::new(); N_CHILDREN_OBITS]);
         let mut vec: Vec<usize> = (0..N_CHILDREN_OBITS).collect();
         vec.shuffle(&mut rng);
         let transpositions = compute_transpositions(vec);
+        println!("{:#?}", transpositions);
         compute_paths(
           N_CHILDREN_OBITS,
           transpositions,
@@ -89,49 +176,9 @@ impl StaticArtwork for Model {
         )
         .into_iter()
         .map(compute_linestring_from_path)
-        .collect::<Vec<_>>()
+        .collect() // TODO: add smoothing?
       })
-      .collect::<Vec<_>>();
-
-    (0..N_STEPS).for_each(|step| {
-      let t = map_range(step, 0, N_STEPS, 0.0, 1.0);
-      permutations_paths
-        .iter()
-        .enumerate()
-        .for_each(|(i, permutation_paths)| {
-          // Find the main path new center
-          let center = main_permutation_path
-            .get(i)
-            .unwrap()
-            .line_interpolate_point(t as f32)
-            .unwrap();
-          let center = Vec2::from(center.x_y());
-          // Compute polar coordinates angle (between -pi/2 and pi/2)
-          let theta = (center.x / center.y).atan();
-          let theta = 2.0 * (theta + FRAC_PI_2);
-          permutation_paths.iter().enumerate().for_each(|(j, path)| {
-            if let Some(point) = path.line_interpolate_point(t as f32) {
-              // Update queue with the next point on the path
-              let point = Vec2::from(point.x_y());
-              let point = point.rotate(-theta) + center;
-              let queue = permutations_points.get_mut(i).unwrap().get_mut(j).unwrap();
-              queue.push_back(point);
-            }
-          })
-        });
-    });
-
-    permutations_points.iter().for_each(|permutation_points| {
-      permutation_points.iter().for_each(|points| {
-        points.iter().for_each(|point| {
-          draw
-            .ellipse()
-            .xy(*point)
-            .w_h(POINT_SIZE, POINT_SIZE)
-            .color(BLACK);
-        })
-      })
-    })
+      .collect();
   }
 }
 
