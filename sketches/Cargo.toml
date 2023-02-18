@@ -20,8 +20,17 @@ path = "examples/vibrations/lines.rs"
 
 # Spaces
 [[example]]
-name = "spaces_coloured"
-path = "examples/spaces/coloured.rs"
+name = "spaces_coloured_halton_23_brush"
+path = "examples/spaces/coloured/halton_23_brush.rs"
+[[example]]
+name = "spaces_coloured_halton_23_pencil"
+path = "examples/spaces/coloured/halton_23_pencil.rs"
+[[example]]
+name = "spaces_coloured_marker"
+path = "examples/spaces/coloured/marker.rs"
+[[example]]
+name = "spaces_coloured_brush"
+path = "examples/spaces/coloured/brush.rs"
 [[example]]
 name = "spaces_pencil"
 path = "examples/spaces/pencil.rs"

@@ -1,8 +1,6 @@
-use std::path::PathBuf;
-
-use geo::Rect;
+use geo::{LinesIter, Rect};
 use nannou::{
-  prelude::{Hsl, Key, WHITE},
+  prelude::{Hsl, Key, BLACK, WHITE},
   App,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -12,7 +10,7 @@ use utils::{
   app::{
     make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
   },
-  draw::filling::FillingOptions,
+  draw::{filling::FillingOptions, line::LineOptions},
 };
 
 const MIN_SIZE: f32 = 50.0;
@@ -35,8 +33,10 @@ fn main() {
 struct Model {
   base_model: BaseModel,
   depth: u32,
-  weight: f32,
-  density: f32,
+  line_weight: f32,
+  line_density: f32,
+  filling_weight: f32,
+  filling_density: f32,
   elapsed_frames: u32,
 }
 
@@ -45,14 +45,16 @@ impl NannouApp for Model {
     Self {
       base_model,
       depth: 0,
-      weight: 4.0,
-      density: 0.07,
+      line_weight: 10.0,
+      line_density: 0.25,
+      filling_weight: 3.0,
+      filling_density: 0.06,
       elapsed_frames: 0,
     }
   }
   fn get_options() -> NannouAppOptions {
     NannouAppOptions {
-      background_path: Some(PathBuf::from("paper.jpg")),
+      render_size: [1080, 1080],
       ..NannouAppOptions::default()
     }
   }
@@ -69,10 +71,14 @@ impl NannouApp for Model {
     match key {
       Key::Equals => self.depth += 1,
       Key::Minus => self.depth -= 1,
-      Key::Up => self.weight += 1.0,
-      Key::Down => self.weight -= 1.0,
-      Key::Left => self.density -= 0.001,
-      Key::Right => self.density += 0.001,
+      Key::Up => self.filling_weight += 1.0,
+      Key::Down => self.filling_weight -= 1.0,
+      Key::Left => self.filling_density -= 0.01,
+      Key::Right => self.filling_density += 0.01,
+      Key::W => self.line_weight += 1.0,
+      Key::S => self.line_weight -= 1.0,
+      Key::A => self.line_density -= 0.05,
+      Key::D => self.line_density += 0.05,
       _ => {}
     }
   }
@@ -111,11 +117,23 @@ impl StaticArtwork for Model {
         adjusted_rect.to_polygon(),
         draw,
         FillingOptions {
-          weight: self.weight,
-          density: self.density,
+          weight: self.filling_weight,
+          density: self.filling_density,
           color,
         },
-      )
+      );
+      adjusted_rect.lines_iter().for_each(|line| {
+        utils::draw::line::pencil(
+          line.start,
+          line.end,
+          draw,
+          LineOptions {
+            weight: self.line_weight,
+            density: self.line_density,
+            color: Hsl::from(BLACK.into_format()),
+          },
+        )
+      });
     });
   }
 }
