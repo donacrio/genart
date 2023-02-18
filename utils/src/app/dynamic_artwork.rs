@@ -3,7 +3,7 @@ use nannou::prelude::map_range;
 use super::nannou_app::{make_base_nannou_app, NannouApp};
 
 pub trait DynamicArtwork: NannouApp {
-  fn draw_at_time(&self, t: f64);
+  fn draw_at_time(&mut self, t: f64); // TODO: make immutable ref and create update function with mutable ref
   fn fps(&self) -> u32;
   fn n_sec(&self) -> u32;
   fn current_frame(&mut self) -> &mut u32;

@@ -12,3 +12,13 @@ nannou = "0.18.1"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 utils = { path = "../utils" }
+
+[[example]]
+name = "permutations_straight"
+path = "examples/straight.rs"
+[[example]]
+name = "permutations_circles_animated"
+path = "examples/circles_animated.rs"
+[[example]]
+name = "permutations_circles_static"
+path = "examples/circles_static.rs"
