@@ -14,8 +14,11 @@ rand_distr = "0.4.3"
 utils = { path = "../utils" }
 
 [[example]]
-name = "permutations_straight"
-path = "examples/straight.rs"
+name = "permutations_straight_animated"
+path = "examples/straight_animated.rs"
+[[example]]
+name = "permutations_straight_static"
+path = "examples/straight_static.rs"
 [[example]]
 name = "permutations_circles_animated"
 path = "examples/circles_animated.rs"
