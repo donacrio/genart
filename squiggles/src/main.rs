@@ -1,35 +1,27 @@
 mod tile;
 
-use geo::{Coord, LinesIter, Rect};
+use geo::{Coord, Rect};
 use nannou::{
-  prelude::{Hsl, Key, WHITE},
+  prelude::{Hsl, Key, BLACK, WHITE},
   App,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rand_distr::{Distribution, Normal, Standard};
 use tile::Tile;
 use utils::{
-  algorithm::space::{Space, SpaceTile},
-  app::{
-    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-  },
+  algorithm::space::SpaceTile,
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
   draw::line::LineOptions,
-  geometry::hatch::hatch,
 };
 
-const MIN_SIZE: f32 = 50.0;
-const COLOR_PALETTE: [[f32; 3]; 5] = [
-  [201.0, 1.0, 0.14],
-  [0.0, 0.69, 0.5],
-  [31.0, 1.0, 0.48],
-  [40.0, 0.97, 0.64],
-  [51.0, 0.55, 0.82],
-];
-
-fn hsl_from_palette(color: [f32; 3]) -> Hsl {
-  Hsl::new(color[0], color[1], color[2])
-}
-
+const RECT_MIN_SIZE: f32 = 50.0;
+const PADDING: f32 = 10.0;
+const HATCH_DENSITY_MEAN: f32 = 0.1;
+const HATCH_DENSITY_STD: f32 = 0.05;
+// const MAX_BREAKPOINTS_MEAN: f32 = 50.0;
+// const MAX_BREAKPOINTS_VARIANCE: f32 = 10.0;
+// const BREAK_PROPORTION_MEAN: f64 = 0.8;
+// const BREAK_PROPORTION_VARIANCE: f64 = 0.05;
 fn main() {
   make_static_artwork::<Model>().run();
 }
@@ -37,33 +29,19 @@ fn main() {
 struct Model {
   base_model: BaseModel,
   depth: u32,
-  line_weight: f32,
-  line_density: f32,
-  filling_weight: f32,
-  filling_density: f32,
-  hatches_density: f32,
-  hatches_degrees: f32,
-  elapsed_frames: u32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       depth: 0,
-      line_weight: 5.0,
-      line_density: 10.0,
-      filling_weight: 5.0,
-      filling_density: 1.0,
-      hatches_density: 0.5,
-      hatches_degrees: 60.0,
-      elapsed_frames: 0,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions {
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
       render_size: [1080, 1080],
-      ..NannouAppOptions::default()
+      ..ArtworkOptions::default()
     }
   }
   fn get_base_model(&self) -> &BaseModel {
@@ -73,35 +51,19 @@ impl NannouApp for Model {
     &mut self.base_model
   }
   fn current_frame_name(&self) -> String {
-    format!("frame_{}", self.elapsed_frames)
+    format!("frame_{}_{}", self.base_model.seed, self.depth)
   }
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
       Key::Equals => self.depth += 1,
       Key::Minus => self.depth -= 1,
-      Key::Up => self.filling_weight += 1.0,
-      Key::Down => self.filling_weight -= 1.0,
-      Key::Left => self.filling_density -= 0.01,
-      Key::Right => self.filling_density += 0.01,
-      Key::W => self.line_weight += 1.0,
-      Key::S => self.line_weight -= 1.0,
-      Key::A => self.line_density -= 0.05,
-      Key::D => self.line_density += 0.05,
-      Key::I => self.hatches_density += 0.05,
-      Key::K => self.hatches_density -= 0.05,
-      Key::J => self.hatches_degrees -= 5.0,
-      Key::L => self.hatches_degrees += 5.0,
       _ => {}
     }
-  }
-  fn update(&mut self, _app: &App) {
-    update_static(self);
-    self.elapsed_frames += 1;
   }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);
@@ -115,57 +77,32 @@ impl StaticArtwork for Model {
 
     let max_children = 2u32.pow(self.depth);
     let mut rng = StdRng::seed_from_u64(self.base_model.seed);
-    let mut space = utils::algorithm::space::compute_space(root, max_children, MIN_SIZE, &mut rng);
-    let leafs = space.leafs();
-    leafs.iter().for_each(|index| {
-      let tile = space.get_node(*index).unwrap().content();
-      let adjusted_rect = Rect::new(
-        tile.rect.min() + (10.0, 10.0).into(),
-        tile.rect.max() - (10.0, 10.0).into(),
-      );
-      let index = rng.gen_range(0..COLOR_PALETTE.len());
-      let color = hsl_from_palette(COLOR_PALETTE[index]);
-
-      adjusted_rect.lines_iter().for_each(|line| {
-        utils::draw::line::stroke(
-          line.start,
-          line.end,
-          draw,
-          LineOptions {
-            weight: self.line_weight,
-            density: self.line_density,
-            color,
-          },
-        )
-      });
-      utils::geometry::hatch::hatch(
-        adjusted_rect.to_polygon(),
-        self.hatches_density,
-        self.hatches_degrees,
+    let mut space =
+      utils::algorithm::space::compute_space(root, max_children, RECT_MIN_SIZE, &mut rng);
+    let rects = space
+      .leafs()
+      .iter_mut()
+      .map(|index| space.get_node(*index).unwrap().content())
+      .map(|tile| {
+        let min = tile.rect.min() + (PADDING, PADDING).into();
+        let max = tile.rect.max() - (PADDING, PADDING).into();
+        Rect::new(min, max)
+      })
+      .collect();
+    squiggle(rects, &mut rng).iter().for_each(|(start, end)| {
+      utils::draw::line::stroke(
+        *start,
+        *end,
+        draw,
+        LineOptions {
+          weight: 5.0,
+          density: 1.0,
+          color: Hsl::from(BLACK.into_format()),
+        },
       )
-      .for_each(|(start, end)| {
-        utils::draw::line::stroke(
-          start,
-          end,
-          draw,
-          LineOptions {
-            weight: self.line_weight,
-            density: self.line_density,
-            color,
-          },
-        )
-      });
     });
   }
 }
-
-// const PADDING: f32 = 50.0;
-const HATCH_WEIGHT_MEAN: f32 = 40.0;
-const HATCH_WEIGHT_STD: f32 = 10.0;
-// const MAX_BREAKPOINTS_MEAN: f32 = 50.0;
-// const MAX_BREAKPOINTS_VARIANCE: f32 = 10.0;
-// const BREAK_PROPORTION_MEAN: f64 = 0.8;
-// const BREAK_PROPORTION_VARIANCE: f64 = 0.05;
 
 enum HatchRotation {
   NegFracPi8,
@@ -176,10 +113,18 @@ enum HatchRotation {
   FracPi8,
 }
 
-pub fn squiggle(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f32>, Coord<f32>)> {
+pub fn squiggle(rects: Vec<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f32>, Coord<f32>)> {
+  let mut contours = rects
+    .iter()
+    .flat_map(|rect| rect.to_lines())
+    .map(|line| (line.start, line.end))
+    .collect::<Vec<_>>();
   //   let max_breakpoints_law = Normal::new(MAX_BREAKPOINTS_MEAN, MAX_BREAKPOINTS_VARIANCE).unwrap();
   //   let break_proportion_law = Normal::new(BREAK_PROPORTION_MEAN, BREAK_PROPORTION_VARIANCE).unwrap();
-  create_hatches(space, rng)
+  let mut hatches = rects
+    .iter()
+    .flat_map(|rect| create_hatches(rect, rng))
+    .collect::<Vec<_>>();
   // .iter()
   // .map(|hatches| {
   //   let max_breakpoint = max_breakpoints_law.sample(&mut rand::thread_rng()) as usize;
@@ -195,22 +140,20 @@ pub fn squiggle(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f3
   // .flatten()
   // .flatten()
   // .collect()
+  contours.append(&mut hatches);
+  contours
 }
 
-fn create_hatches(space: &mut Space<Rect<f32>>, rng: &mut StdRng) -> Vec<(Coord<f32>, Coord<f32>)> {
-  space
-    .leafs()
-    .iter()
-    .map(|index| space.get_node(*index).unwrap().content())
-    .flat_map(|rectangle| {
-      // IDEA: increment & rotation depending on rectangle size
-      let hatch_weight = Normal::new(HATCH_WEIGHT_MEAN, HATCH_WEIGHT_STD)
-        .unwrap()
-        .sample(rng);
-      let hatch_degrees = rand::random::<HatchRotation>().value();
-      hatch(rectangle.to_polygon(), hatch_weight, hatch_degrees)
-    })
-    .collect()
+fn create_hatches(
+  rect: &Rect<f32>,
+  rng: &mut StdRng,
+) -> impl Iterator<Item = (Coord<f32>, Coord<f32>)> {
+  let hatch_density = Normal::new(HATCH_DENSITY_MEAN, HATCH_DENSITY_STD)
+    .unwrap()
+    .sample(rng);
+  // TODO: use custom rng
+  let hatch_degrees = rand::random::<HatchRotation>().value();
+  utils::geometry::hatch::hatch(rect.to_polygon(), hatch_density, hatch_degrees)
 }
 
 impl HatchRotation {

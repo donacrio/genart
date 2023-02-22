@@ -5,9 +5,7 @@ use nannou::{
 };
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 use std::{collections::VecDeque, f32::consts::FRAC_PI_2};
-use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-};
+use utils::app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
 
 const N_STEPS: usize = 5000;
 
@@ -27,12 +25,12 @@ struct Model {
   base_model: BaseModel,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self { base_model }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions::default()
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions::default()
   }
   fn get_base_model(&self) -> &BaseModel {
     &self.base_model
@@ -44,13 +42,10 @@ impl NannouApp for Model {
     format!("frame_{}", self.base_model.seed)
   }
   fn key_pressed(&mut self, _app: &App, _key: Key) {}
-  fn update(&mut self, _app: &App) {
-    update_static(self)
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);

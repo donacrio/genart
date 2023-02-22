@@ -6,9 +6,7 @@ use nannou::{
   App,
 };
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
-use utils::app::{
-  make_dynamic_artwork, update_dynamic, BaseModel, DynamicArtwork, NannouApp, NannouAppOptions,
-};
+use utils::app::{make_dynamic_artwork, Artwork, ArtworkOptions, BaseModel, DynamicArtwork};
 
 const FPS: u32 = 60;
 const N_SEC: u32 = 30;
@@ -35,7 +33,7 @@ struct Model {
   permutations_points: Vec<Vec<VecDeque<Vec2>>>,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     let mut model = Self {
       base_model,
@@ -47,8 +45,8 @@ impl NannouApp for Model {
     model.compute_paths();
     model
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions::default()
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions::default()
   }
   fn get_base_model(&self) -> &BaseModel {
     &self.base_model
@@ -60,9 +58,6 @@ impl NannouApp for Model {
     format!("frame_{}", self.current_frame)
   }
   fn key_pressed(&mut self, _app: &App, _key: Key) {}
-  fn update(&mut self, _app: &App) {
-    update_dynamic(self)
-  }
 }
 
 impl DynamicArtwork for Model {

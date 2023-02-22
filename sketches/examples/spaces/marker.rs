@@ -9,9 +9,7 @@ use rand::{rngs::StdRng, SeedableRng};
 use sketches::tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
-  app::{
-    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-  },
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
 };
 
 const MIN_SIZE: f32 = 100.0;
@@ -28,7 +26,7 @@ struct Model {
   elapsed_frames: u32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
@@ -38,10 +36,10 @@ impl NannouApp for Model {
       elapsed_frames: 0,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions {
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
       background_path: Some(PathBuf::from("paper.jpg")),
-      ..NannouAppOptions::default()
+      ..ArtworkOptions::default()
     }
   }
   fn get_base_model(&self) -> &BaseModel {
@@ -64,14 +62,10 @@ impl NannouApp for Model {
       _ => {}
     }
   }
-  fn update(&mut self, _app: &App) {
-    update_static(self);
-    self.elapsed_frames += 1;
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);
@@ -126,5 +120,6 @@ impl StaticArtwork for Model {
         )
       })
     });
+    self.elapsed_frames += 1;
   }
 }

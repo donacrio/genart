@@ -5,9 +5,7 @@ use nannou::{
   App,
 };
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
-use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-};
+use utils::app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
 
 const DEPTH: usize = 0;
 const N: usize = 2;
@@ -24,7 +22,7 @@ struct Model {
   current_frame: u32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
@@ -33,9 +31,9 @@ impl NannouApp for Model {
       current_frame: 0,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions {
-      ..NannouAppOptions::default()
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
+      ..ArtworkOptions::default()
     }
   }
   fn get_base_model(&self) -> &BaseModel {
@@ -68,13 +66,10 @@ impl NannouApp for Model {
       _ => {}
     }
   }
-  fn update(&mut self, _app: &App) {
-    update_static(self)
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let mut rng = StdRng::seed_from_u64(self.base_model.seed);
 
     let [w_w, w_h] = self.base_model.texture.size();

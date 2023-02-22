@@ -6,9 +6,7 @@ use nannou::{
 use rand::{rngs::StdRng, SeedableRng};
 use utils::{
   algorithm::space::SpaceTile,
-  app::{
-    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-  },
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
 };
 
 const MIN_SIZE: f32 = 1.0;
@@ -50,15 +48,15 @@ struct Model {
   depth: u32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       depth: 1,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions::default()
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions::default()
   }
   fn get_base_model(&self) -> &BaseModel {
     &self.base_model
@@ -76,13 +74,10 @@ impl NannouApp for Model {
       _ => {}
     }
   }
-  fn update(&mut self, _app: &App) {
-    update_static(self)
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);
