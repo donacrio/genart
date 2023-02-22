@@ -1,30 +1,26 @@
-use nannou::{
-  prelude::{Key, Update},
-  wgpu, window, App, Draw, Frame,
-};
+use nannou::{prelude::Key, wgpu, window, App, Draw, Frame};
 use rand::random;
 use std::path::PathBuf;
 
 const TEXTURE_SIZE: [u32; 2] = [2160, 2160];
 const RENDER_SIZE: [u32; 2] = [540, 540];
 
-pub trait NannouApp {
+pub trait Artwork {
   fn new(model: BaseModel) -> Self;
-  fn get_options() -> NannouAppOptions;
+  fn get_options() -> ArtworkOptions;
   fn get_base_model(&self) -> &BaseModel;
   fn get_base_model_mut(&mut self) -> &mut BaseModel;
   fn current_frame_name(&self) -> String;
   fn key_pressed(&mut self, app: &App, key: Key);
-  fn update(&mut self, app: &App);
 }
 
-pub struct NannouAppOptions {
+pub struct ArtworkOptions {
   pub texture_size: [u32; 2],
   pub render_size: [u32; 2],
   pub background_path: Option<PathBuf>,
 }
 
-impl Default for NannouAppOptions {
+impl Default for ArtworkOptions {
   fn default() -> Self {
     Self {
       texture_size: TEXTURE_SIZE,
@@ -35,17 +31,18 @@ impl Default for NannouAppOptions {
 }
 
 pub struct BaseModel {
-  window_id: window::Id,
+  pub window_id: window::Id,
   pub draw: Draw,
   pub texture: wgpu::Texture,
-  renderer: nannou::draw::Renderer,
-  texture_capturer: wgpu::TextureCapturer,
-  texture_reshaper: wgpu::TextureReshaper,
-  background_texture: Option<wgpu::Texture>,
+  pub renderer: nannou::draw::Renderer,
+  pub texture_capturer: wgpu::TextureCapturer,
+  pub texture_reshaper: wgpu::TextureReshaper,
+  pub background_texture: Option<wgpu::Texture>,
   pub seed: u64,
+  pub recording: bool,
 }
 
-fn make_base_model<T: 'static + NannouApp>(app: &App, options: NannouAppOptions) -> BaseModel {
+fn make_base_model<T: 'static + Artwork>(app: &App, options: ArtworkOptions) -> BaseModel {
   let [win_w, win_h] = options.render_size;
   let window_id = app
     .new_window()
@@ -107,71 +104,19 @@ fn make_base_model<T: 'static + NannouApp>(app: &App, options: NannouAppOptions)
     texture_reshaper,
     background_texture,
     seed,
+    recording: false,
   }
 }
 
-pub fn make_base_nannou_app<T: 'static + NannouApp>() -> nannou::app::Builder<T> {
-  nannou::app(model).update(update).exit(exit)
+pub fn make_base_nannou_app<T: 'static + Artwork>() -> nannou::app::Builder<T> {
+  nannou::app(model).exit(exit)
 }
 
-fn model<T: 'static + NannouApp>(app: &App) -> T {
+fn model<T: 'static + Artwork>(app: &App) -> T {
   T::new(make_base_model::<T>(app, T::get_options()))
 }
 
-fn update<T: NannouApp>(app: &App, model: &mut T, _update: Update) {
-  println!("\nUsing seed {}", model.get_base_model().seed);
-  if let Some(background_texture) = &model.get_base_model().background_texture {
-    // Rendering texture as background
-    let sampler = wgpu::SamplerBuilder::new()
-      .address_mode(wgpu::AddressMode::ClampToBorder)
-      .into_descriptor();
-    let draw = &model.get_base_model().draw;
-    draw.sampler(sampler);
-    draw.texture(&background_texture);
-  }
-
-  println!("Computing artwork...");
-  model.update(app);
-
-  println!("Drawing to texture...");
-  let window = app.window(model.get_base_model().window_id).unwrap();
-  let device = window.device();
-  let base_model = model.get_base_model_mut();
-
-  // Render to texture
-  let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-    label: Some("Texture Renderer"),
-  });
-  base_model.renderer.render_to_texture(
-    device,
-    &mut encoder,
-    &base_model.draw,
-    &base_model.texture,
-  );
-  let snapshot = model.get_base_model().texture_capturer.capture(
-    device,
-    &mut encoder,
-    &model.get_base_model().texture,
-  );
-  window.queue().submit(Some(encoder.finish()));
-
-  let path = captured_frame_path(app, model.current_frame_name().as_str());
-  println!("Saving texture {} ...", path.to_str().unwrap());
-  let encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-    label: Some("Save texture Renderer"),
-  });
-  snapshot
-    .read(move |result| {
-      let image = result.expect("Failed to map texture memory").to_owned();
-      image
-        .save(&path)
-        .expect("Failed to save texture to png image");
-    })
-    .unwrap();
-  window.queue().submit(Some(encoder.finish()));
-}
-
-fn view<T: NannouApp>(_app: &App, model: &T, frame: Frame) {
+fn view<T: Artwork>(_app: &App, model: &T, frame: Frame) {
   model
     .get_base_model()
     .texture_reshaper
@@ -179,7 +124,7 @@ fn view<T: NannouApp>(_app: &App, model: &T, frame: Frame) {
 }
 
 // Wait for capture to finish.
-fn exit<T: NannouApp>(app: &App, model: T) {
+fn exit<T: Artwork>(app: &App, model: T) {
   let window = app.window(model.get_base_model().window_id).unwrap();
   let device = window.device();
   model
@@ -189,11 +134,15 @@ fn exit<T: NannouApp>(app: &App, model: T) {
     .unwrap();
 }
 
-fn key_pressed<T: NannouApp>(app: &App, model: &mut T, key: Key) {
+fn key_pressed<T: Artwork>(app: &App, model: &mut T, key: Key) {
   let base_model = model.get_base_model_mut();
-  if key == Key::R {
-    let seed = random();
-    base_model.seed = seed;
+  match key {
+    Key::R => base_model.recording = !base_model.recording,
+    Key::T => {
+      let seed = random();
+      base_model.seed = seed;
+    }
+    _ => {}
   }
   model.key_pressed(app, key);
 }
@@ -206,7 +155,7 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
     .join(app.exe_name().unwrap())
 }
 
-fn captured_frame_path(app: &App, name: &str) -> std::path::PathBuf {
+pub fn captured_frame_path(app: &App, name: &str) -> std::path::PathBuf {
   capture_directory(app).join(name).with_extension("png")
 }
 

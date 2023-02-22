@@ -5,9 +5,7 @@ use nannou::{
 };
 use std::path::PathBuf;
 use utils::{
-  app::{
-    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-  },
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
   draw::line::LineOptions,
 };
 
@@ -19,14 +17,14 @@ struct Model {
   base_model: BaseModel,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self { base_model }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions {
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
       background_path: Some(PathBuf::from("paper.jpg")),
-      ..NannouAppOptions::default()
+      ..ArtworkOptions::default()
     }
   }
   fn get_base_model(&self) -> &BaseModel {
@@ -39,13 +37,10 @@ impl NannouApp for Model {
     String::from("frame")
   }
   fn key_pressed(&mut self, _app: &App, _key: Key) {}
-  fn update(&mut self, _app: &App) {
-    update_static(self)
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);

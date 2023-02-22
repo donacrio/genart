@@ -3,9 +3,7 @@ use nannou::{
   prelude::{Hsl, Key, WHITE},
   App,
 };
-use utils::app::{
-  make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-};
+use utils::app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
 
 fn main() {
   make_static_artwork::<Model>().run();
@@ -18,7 +16,7 @@ struct Model {
   degrees: f32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
@@ -27,8 +25,8 @@ impl NannouApp for Model {
       degrees: 0.0,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions::default()
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions::default()
   }
   fn get_base_model(&self) -> &BaseModel {
     &self.base_model
@@ -51,13 +49,10 @@ impl NannouApp for Model {
       _ => {}
     }
   }
-  fn update(&mut self, _app: &App) {
-    update_static(self)
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);

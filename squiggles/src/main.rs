@@ -10,9 +10,7 @@ use rand_distr::{Distribution, Normal, Standard};
 use tile::Tile;
 use utils::{
   algorithm::space::SpaceTile,
-  app::{
-    make_static_artwork, update_static, BaseModel, NannouApp, NannouAppOptions, StaticArtwork,
-  },
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
   draw::line::LineOptions,
 };
 
@@ -33,17 +31,17 @@ struct Model {
   depth: u32,
 }
 
-impl NannouApp for Model {
+impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
       depth: 0,
     }
   }
-  fn get_options() -> NannouAppOptions {
-    NannouAppOptions {
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
       render_size: [1080, 1080],
-      ..NannouAppOptions::default()
+      ..ArtworkOptions::default()
     }
   }
   fn get_base_model(&self) -> &BaseModel {
@@ -62,13 +60,10 @@ impl NannouApp for Model {
       _ => {}
     }
   }
-  fn update(&mut self, _app: &App) {
-    update_static(self);
-  }
 }
 
 impl StaticArtwork for Model {
-  fn draw(&self) {
+  fn draw(&mut self) {
     let draw = &self.base_model.draw;
 
     draw.background().color(WHITE);
