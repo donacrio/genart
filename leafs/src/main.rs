@@ -4,13 +4,10 @@ mod systems;
 mod turtle;
 
 use app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
-use draw::NannouDrawer;
+use draw::BrushDrawer;
 use geo::{AffineOps, AffineTransform, BoundingRect};
-use nannou::{
-  lyon::lyon_tessellation::{LineCap, LineJoin},
-  prelude::Key,
-  App,
-};
+use nannou::{prelude::Key, App};
+use rand::{rngs::StdRng, SeedableRng};
 use std::f64::consts::FRAC_PI_3;
 use systems::{
   leaf::{leaf_rule, LeafParameters, LEAF_AXIOM},
@@ -35,7 +32,6 @@ impl Artwork for Model {
   }
   fn get_options() -> ArtworkOptions {
     ArtworkOptions {
-      // background_path: Some(PathBuf::from("paper.jpg")),
       ..ArtworkOptions::default()
     }
   }
@@ -70,17 +66,17 @@ impl StaticArtwork for Model {
 
     let bbox = polygons.bounding_rect().unwrap();
     let transform: AffineTransform<_> =
-      AffineTransform::scale(w / bbox.width(), w / bbox.width(), bbox.center())
+      AffineTransform::translate(-bbox.center().x, -bbox.center().y)
+        .scaled(w / bbox.width(), w / bbox.width(), bbox.center())
         .rotated(90.0, bbox.center());
     polygons.affine_transform_mut(&transform);
 
+    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
     for polygon in polygons {
       draw
         .polyline()
-        .stroke_weight(5.0)
-        .caps(LineCap::Round)
-        .join(LineJoin::Round)
-        .polyline_from_linestring(polygon.exterior())
+        .stroke_weight(3.0)
+        .brush_from_linestring(polygon.exterior(), 10.0, &mut rng)
         .color(nannou::color::BLACK);
     }
   }
