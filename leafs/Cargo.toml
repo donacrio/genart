@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 geo = "0.24.0"
 geo-svg = "0.5.0"
+nannou = "0.18.1"
+rand = "0.8.5"

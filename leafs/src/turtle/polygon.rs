@@ -27,7 +27,7 @@ impl Params {
   }
 }
 
-pub fn to_geom<T: TurtleInterpretation>(commands: Vec<T>, params: Params) -> MultiPolygon {
+pub fn to_geom<T: TurtleInterpretation>(commands: Vec<T>, params: &Params) -> MultiPolygon {
   let mut polygons = vec![];
 
   let mut position = coord! {x:0.0, y:0.0};

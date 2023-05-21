@@ -16,14 +16,15 @@ pub enum Leaf {
   Depile,
 }
 
+#[derive(Clone)]
 pub struct LeafParameters {
-  main_apex_length: f64,
-  main_apex_growth_rate: f64,
-  side_apex_length: f64,
-  side_apex_growth_rate: f64,
-  notch_length: f64,
-  notch_growth_rate: f64,
-  potential_decrement: f64,
+  pub main_apex_length: f64,
+  pub main_apex_growth_rate: f64,
+  pub side_apex_length: f64,
+  pub side_apex_growth_rate: f64,
+  pub notch_length: f64,
+  pub notch_growth_rate: f64,
+  pub potential_decrement: f64,
 }
 
 impl LeafParameters {
@@ -101,7 +102,7 @@ pub fn leaf_rule(input: Leaf, parameters: &LeafParameters) -> Vec<Leaf> {
         Leaf::Pile,
         Leaf::Vertex,
         Leaf::Load,
-        Leaf::MainApex(time + parameters.potential_decrement, direction),
+        Leaf::MainApex(time + 1.0, direction),
       ],
       false => vec![
         Leaf::Vertex,
@@ -128,7 +129,7 @@ pub fn leaf_rule(input: Leaf, parameters: &LeafParameters) -> Vec<Leaf> {
         Leaf::Pile,
         Leaf::Vertex,
         Leaf::Load,
-        Leaf::MainApex(time + parameters.potential_decrement, direction),
+        Leaf::MainApex(time + 1.0, direction),
       ],
     },
     Leaf::SideApex(time) => {

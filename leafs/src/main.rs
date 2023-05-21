@@ -1,27 +1,91 @@
-mod l_system;
+mod app;
+mod draw;
 mod systems;
 mod turtle;
 
-use geo_svg::{Color, ToSvg};
-use l_system::LSystem;
-use std::{f64::consts::FRAC_PI_3, fs};
-use systems::leaf::{leaf_rule, LeafParameters, LEAF_AXIOM};
-use turtle::polygon::to_geom;
+use app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
+use draw::NannouDrawer;
+use geo::{AffineOps, AffineTransform, BoundingRect};
+use nannou::{
+  lyon::lyon_tessellation::{LineCap, LineJoin},
+  prelude::Key,
+  App,
+};
+use std::f64::consts::FRAC_PI_3;
+use systems::{
+  leaf::{leaf_rule, LeafParameters, LEAF_AXIOM},
+  LSystem,
+};
+
+struct Model {
+  base_model: BaseModel,
+  pub params: LeafParameters,
+  steps: usize,
+  turtle_params: turtle::polygon::Params,
+}
+
+impl Artwork for Model {
+  fn new(base_model: BaseModel) -> Self {
+    Self {
+      base_model,
+      params: LeafParameters::new(5.0, 1.0, 0.6, 1.06, 0.0, 1.0, 0.25),
+      steps: 10,
+      turtle_params: turtle::polygon::Params::new(FRAC_PI_3),
+    }
+  }
+  fn get_options() -> ArtworkOptions {
+    ArtworkOptions {
+      // background_path: Some(PathBuf::from("paper.jpg")),
+      ..ArtworkOptions::default()
+    }
+  }
+  fn get_base_model(&self) -> &BaseModel {
+    &self.base_model
+  }
+  fn get_base_model_mut(&mut self) -> &mut BaseModel {
+    &mut self.base_model
+  }
+  fn current_frame_name(&self) -> String {
+    format!("frame_{}", self.base_model.seed)
+  }
+  fn key_pressed(&mut self, _app: &App, key: Key) {
+    match key {
+      Key::Equals => self.steps += 1,
+      Key::Minus => self.steps -= 1,
+      _ => {}
+    }
+  }
+}
+
+impl StaticArtwork for Model {
+  fn draw(&mut self) {
+    let mut l_system = LSystem::new(LEAF_AXIOM.to_vec(), leaf_rule, self.params.clone());
+    let commands = l_system.nth(self.steps).unwrap();
+    let mut polygons = turtle::polygon::to_geom(commands, &self.turtle_params);
+
+    let draw = &self.base_model.draw;
+    draw.background().color(nannou::color::WHITE);
+    let [w_w, _] = self.base_model.texture.size();
+    let w = w_w as f64 * 0.9;
+
+    let bbox = polygons.bounding_rect().unwrap();
+    let transform: AffineTransform<_> =
+      AffineTransform::scale(w / bbox.width(), w / bbox.width(), bbox.center())
+        .rotated(90.0, bbox.center());
+    polygons.affine_transform_mut(&transform);
+
+    for polygon in polygons {
+      draw
+        .polyline()
+        .stroke_weight(5.0)
+        .caps(LineCap::Round)
+        .join(LineJoin::Round)
+        .polyline_from_linestring(polygon.exterior())
+        .color(nannou::color::BLACK);
+    }
+  }
+}
 
 fn main() {
-  fs::create_dir_all("out/leafs").unwrap();
-  let l_system_params = LeafParameters::new(4.0, 1.1, 1.0, 1.2, 1.0, 1.0, 1.0);
-  let mut l_system = LSystem::new(LEAF_AXIOM.to_vec(), leaf_rule, l_system_params);
-
-  let commands = l_system.nth(50).unwrap();
-
-  let draw_params = turtle::polygon::Params::new(FRAC_PI_3);
-  let polygons = to_geom(commands, draw_params);
-
-  let svg = polygons
-    .0
-    .to_svg()
-    .with_stroke_color(Color::Named("BLACK"))
-    .with_fill_opacity(0.0);
-  fs::write("out/leafs/out.svg", svg.to_string()).unwrap();
+  make_static_artwork::<Model>().run()
 }
