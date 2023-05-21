@@ -1,6 +1,7 @@
 use geo::{coord, Rect};
 use nannou::prelude::map_range;
 
+#[allow(dead_code)]
 pub fn tile(rect: Rect, nx: usize, ny: usize) -> Vec<Rect> {
   let (x_min, y_min) = rect.min().x_y();
   let (x_max, y_max) = rect.max().x_y();

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use rand::{distributions::Standard, prelude::Distribution};
+
 use crate::turtle::polygon::{Turtle, TurtleInterpretation};
 
 #[derive(Clone)]
@@ -18,13 +20,13 @@ pub enum Leaf {
 
 #[derive(Clone)]
 pub struct LeafParameters {
-  pub main_apex_length: f64,
-  pub main_apex_growth_rate: f64,
-  pub side_apex_length: f64,
-  pub side_apex_growth_rate: f64,
-  pub notch_length: f64,
-  pub notch_growth_rate: f64,
-  pub potential_decrement: f64,
+  main_apex_length: f64,
+  main_apex_growth_rate: f64,
+  side_apex_length: f64,
+  side_apex_growth_rate: f64,
+  notch_length: f64,
+  notch_growth_rate: f64,
+  potential_decrement: f64,
 }
 
 impl LeafParameters {
@@ -45,6 +47,23 @@ impl LeafParameters {
       notch_length,
       notch_growth_rate,
       potential_decrement,
+    }
+  }
+}
+
+impl Distribution<LeafParameters> for Standard {
+  fn sample<R>(&self, rng: &mut R) -> LeafParameters
+  where
+    R: rand::Rng + ?Sized,
+  {
+    LeafParameters {
+      main_apex_length: 5.0,
+      main_apex_growth_rate: rng.gen_range(1.0..1.2),
+      side_apex_length: rng.gen_range(0.6..10.0),
+      side_apex_growth_rate: rng.gen_range(1.0..1.2),
+      notch_length: rng.gen_range(0.5..3.0),
+      notch_growth_rate: rng.gen_range(0.8..1.2),
+      potential_decrement: rng.gen_range(0.25..1.0),
     }
   }
 }

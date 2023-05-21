@@ -4,10 +4,10 @@ mod utils;
 
 use geo::{AffineOps, AffineTransform, BoundingRect};
 use nannou::{prelude::Key, App};
-use rand::{rngs::StdRng, SeedableRng};
+use rand::{distributions::Standard, prelude::Distribution, rngs::StdRng, SeedableRng};
 use std::{f64::consts::FRAC_PI_3, usize::MAX};
 use systems::{
-  leaf::{leaf_rule, LeafParameters, LEAF_AXIOM},
+  leaf::{leaf_rule, LEAF_AXIOM},
   LSystem,
 };
 use utils::{
@@ -17,7 +17,6 @@ use utils::{
 
 struct Model {
   base_model: BaseModel,
-  pub params: LeafParameters,
   steps: usize,
   turtle_params: turtle::polygon::Params,
 }
@@ -26,7 +25,6 @@ impl Artwork for Model {
   fn new(base_model: BaseModel) -> Self {
     Self {
       base_model,
-      params: LeafParameters::new(5.0, 1.0, 0.6, 1.06, 0.0, 1.0, 0.25),
       steps: 10,
       turtle_params: turtle::polygon::Params::new(FRAC_PI_3),
     }
@@ -48,7 +46,7 @@ impl Artwork for Model {
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
       Key::Equals => self.steps += 1,
-      Key::Minus => self.steps = (self.steps + 1).clamp(0, MAX),
+      Key::Minus => self.steps = (self.steps - 1).clamp(0, MAX),
       _ => {}
     }
   }
@@ -56,7 +54,8 @@ impl Artwork for Model {
 
 impl StaticArtwork for Model {
   fn draw(&mut self) {
-    let mut l_system = LSystem::new(LEAF_AXIOM.to_vec(), leaf_rule, self.params.clone());
+    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
+    let mut l_system = LSystem::new(LEAF_AXIOM.to_vec(), leaf_rule, Standard.sample(&mut rng));
     let commands = l_system.nth(self.steps).unwrap();
     let mut polygons = turtle::polygon::to_geom(commands, &self.turtle_params);
 
@@ -72,7 +71,6 @@ impl StaticArtwork for Model {
         .rotated(90.0, bbox.center());
     polygons.affine_transform_mut(&transform);
 
-    let mut rng = StdRng::seed_from_u64(self.base_model.seed);
     for polygon in polygons {
       draw
         .polyline()
