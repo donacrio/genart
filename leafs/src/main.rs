@@ -1,17 +1,18 @@
-mod app;
-mod draw;
 mod systems;
 mod turtle;
+mod utils;
 
-use app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork};
-use draw::BrushDrawer;
 use geo::{AffineOps, AffineTransform, BoundingRect};
 use nannou::{prelude::Key, App};
 use rand::{rngs::StdRng, SeedableRng};
-use std::f64::consts::FRAC_PI_3;
+use std::{f64::consts::FRAC_PI_3, usize::MAX};
 use systems::{
   leaf::{leaf_rule, LeafParameters, LEAF_AXIOM},
   LSystem,
+};
+use utils::{
+  app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
+  draw::BrushDrawer,
 };
 
 struct Model {
@@ -47,7 +48,7 @@ impl Artwork for Model {
   fn key_pressed(&mut self, _app: &App, key: Key) {
     match key {
       Key::Equals => self.steps += 1,
-      Key::Minus => self.steps -= 1,
+      Key::Minus => self.steps = (self.steps + 1).clamp(0, MAX),
       _ => {}
     }
   }
