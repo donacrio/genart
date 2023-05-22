@@ -1,17 +1,17 @@
 use geo::{coord, AffineOps, AffineTransform, BoundingRect, MultiPolygon, Rect, Scale};
-use leafs::utils::{
+use nannou::{prelude::Key, text, App};
+use plants::utils::{
   app::{make_static_artwork, Artwork, ArtworkOptions, BaseModel, StaticArtwork},
   draw::BrushDrawer,
   layout::tile,
 };
-use leafs::{
+use plants::{
   systems::{
     leaf::{leaf_rule, LEAF_AXIOM},
     LSystem,
   },
   turtle,
 };
-use nannou::{prelude::Key, text, App};
 use rand::{distributions::Standard, prelude::Distribution, rngs::StdRng, SeedableRng};
 use std::{f64::consts::FRAC_PI_3, path::Path, usize::MAX};
 
