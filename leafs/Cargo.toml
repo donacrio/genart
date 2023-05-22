@@ -1,0 +1,14 @@
+[package]
+name = "leafs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+geo = "0.25.0"
+geo-svg = "0.5.0"
+itertools = "0.10.5"
+lipsum = "0.9.0"
+nannou = "0.18.1"
+rand = "0.8.5"
