@@ -1,5 +1,5 @@
 [package]
-name = "leafs"
+name = "plants"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,3 +12,7 @@ itertools = "0.10.5"
 lipsum = "0.9.0"
 nannou = "0.18.1"
 rand = "0.8.5"
+
+[[example]]
+name = "plants_leafs_palette"
+path = "examples/leafs/palette.rs"
