@@ -56,13 +56,15 @@ impl Distribution<LeafParameters> for Standard {
   where
     R: rand::Rng + ?Sized,
   {
+    let main_apex_growth_rate = rng.gen_range(1.0..1.2);
+    let side_apex_growth_rate = main_apex_growth_rate * (1.0 + 0.1 * rng.gen::<f64>());
     LeafParameters {
       main_apex_length: 5.0,
-      main_apex_growth_rate: rng.gen_range(1.0..1.2),
-      side_apex_length: rng.gen_range(0.6..10.0),
-      side_apex_growth_rate: rng.gen_range(1.0..1.2),
-      notch_length: rng.gen_range(0.5..3.0),
-      notch_growth_rate: rng.gen_range(0.8..1.2),
+      main_apex_growth_rate,
+      side_apex_length: rng.gen_range(1.0..3.0),
+      side_apex_growth_rate,
+      notch_length: rng.gen_range(0.5..1.5),
+      notch_growth_rate: rng.gen_range(1.0..1.05),
       potential_decrement: rng.gen_range(0.25..1.0),
     }
   }
