@@ -4,7 +4,7 @@ use rand::{distributions::Standard, prelude::Distribution};
 
 use crate::turtle::polygon::{Turtle, TurtleInterpretation};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Leaf {
   Vertex,
   Grow(f64, f64, Option<f64>),

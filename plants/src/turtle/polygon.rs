@@ -1,6 +1,6 @@
-use std::collections::VecDeque;
-
-use nalgebra::{Point3, Rotation3, Vector3};
+use crate::utils::geometry::{WorldPoint, WorldRotation, WorldVector};
+use euclid::Angle;
+use std::{collections::VecDeque, f64::consts::FRAC_PI_4, fmt::Debug};
 
 pub trait TurtleInterpretation {
   fn to_turtle(&self) -> Turtle;
@@ -27,32 +27,28 @@ impl Params {
   }
 }
 
-pub fn to_geom<T: TurtleInterpretation>(
+pub fn to_geom<T: TurtleInterpretation + Debug>(
   commands: Vec<T>,
   params: &Params,
-) -> Vec<Vec<Point3<f64>>> {
+) -> Vec<Vec<WorldPoint>> {
   let mut polygons = vec![];
 
-  let mut position = Vector3::new(0.0, 0.0, 0.0);
-  let mut rotation = Rotation3::from_axis_angle(&Vector3::z_axis(), 0.0);
+  let mut position = WorldVector::zero();
+  let mut rotation = WorldRotation::around_z(Angle::radians(FRAC_PI_4));
   let mut states = VecDeque::new();
   let mut points = vec![];
   let mut saved_points = VecDeque::new();
   for command in commands.iter() {
     match command.to_turtle() {
-      Turtle::Vertex => points.push(position.into()),
-      Turtle::Forward(length) => position += rotation * Vector3::identity() * length,
+      Turtle::Vertex => points.push(position.to_point()),
+      Turtle::Forward(length) => {
+        position += rotation.transform_vector3d(WorldVector::one()) * length
+      }
       Turtle::Left => {
-        rotation = match rotation.axis() {
-          Some(axis) => Rotation3::from_axis_angle(&axis, rotation.angle() + params.angle),
-          None => Rotation3::from_axis_angle(&Vector3::z_axis(), params.angle),
-        }
+        rotation = rotation.then(&WorldRotation::around_z(Angle::radians(params.angle)));
       }
       Turtle::Right => {
-        rotation = match rotation.axis() {
-          Some(axis) => Rotation3::from_axis_angle(&axis, rotation.angle() - params.angle),
-          None => Rotation3::from_axis_angle(&Vector3::z_axis(), -params.angle),
-        }
+        rotation = rotation.then(&WorldRotation::around_z(Angle::radians(-params.angle)));
       }
       Turtle::Push => states.push_back((position, rotation)),
       Turtle::Pop => (position, rotation) = states.pop_back().unwrap(),
